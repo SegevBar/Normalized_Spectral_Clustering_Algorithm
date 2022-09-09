@@ -108,13 +108,11 @@ static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args) {
 
     int k, numOfVectors, numOfFeatures;
     char *filename;
-    double **nkMatrix, **dataPoints;
+    double **nkMatrix;
     
     if (!PyArg_ParseTuple(args, "is", &k, &filename)) {
         return NULL;
     }
-
-    dataPoints = getDataPoints(&numOfVectors, &numOfFeatures, filename);
     nkMatrix = normalizedSpectralClustering(k, filename, 0);
 
     return nkMatrixToPython(nkMatrix, numOfVectors, k);
