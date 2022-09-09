@@ -106,13 +106,14 @@ static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args) {
     The function then returns a PyObject containing the dataPoints which are
     calculated in steps 1 - 5 of the algorithm. */
 
-    int k, numOfVectors, numOfFeatures;
+    int k, numOfVectors;
     char *filename;
     double **nkMatrix;
     
     if (!PyArg_ParseTuple(args, "is", &k, &filename)) {
         return NULL;
     }
+    numOfVectors = getVectorCount(filename);
     nkMatrix = normalizedSpectralClustering(k, filename, 0);
 
     return nkMatrixToPython(nkMatrix, numOfVectors, k);

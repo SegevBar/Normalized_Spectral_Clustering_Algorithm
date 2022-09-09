@@ -47,6 +47,32 @@ getDataPoints(int *p_numOfVectors, int *p_numOfFeatures, char *filename) {
     return dataPoints;
 }
 
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: Input file, pointers to points amount
+* Action: Counts number of points in file
+* Return: Points count
+*/
+int getVectorCount(char *filename) {
+
+    int lineCounter;
+    char line[MAX_CHARS_LINE];
+    FILE *f;
+
+    f = fopen(filename, "r");
+    ourAssert(f != NULL);
+    fscanf(f, "%s", line);
+
+    lineCounter = 0;
+    do {
+        lineCounter++;
+    } while (fscanf(f, "%s", line) != EOF);
+    
+    fclose(f);
+    
+    return lineCounter;
+}
 
 /*
 * Funcion: 

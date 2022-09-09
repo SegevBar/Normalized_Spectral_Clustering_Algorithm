@@ -135,6 +135,8 @@ void ourAssert(int trueOrFalse);
 
 double **getDataPoints(int *numOfVectors, int *numOfFeatures, char *filename);
 
+int getVectorCount(char *filename);
+
 double **readSymatricMatrixFromFile(char *filename, int *p_lenMatrix);
 
 int featuresCount(const char *line);
