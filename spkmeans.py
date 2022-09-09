@@ -53,7 +53,7 @@ def main():
     if goal == "spk":
         spk(k, filename)
     else:
-        spkmeansmodule.goalsOtherThenSpk(k, goal, filename)
+        spkmeansmodule.goalsOtherThenSpk(goal, filename)
 
 
 def spk(k, filename):

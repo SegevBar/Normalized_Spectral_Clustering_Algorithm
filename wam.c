@@ -15,7 +15,7 @@
 void wam(char* filename) {
     int numOfVectors, numOfFeatures;
     double **dataPoints, **weightedAdjacencyMatrix;
-
+    
     dataPoints = getDataPoints(&numOfVectors, &numOfFeatures, filename);
     weightedAdjacencyMatrix = createWeightedAdjacencyMatrix(dataPoints,         
                               numOfVectors, numOfFeatures);

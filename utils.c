@@ -14,7 +14,7 @@
 */
 double **
 getDataPoints(int *p_numOfVectors, int *p_numOfFeatures, char *filename) {
-
+    
     int lineCounter, j;
     double *dataPointsArray, **dataPoints;
     char line[MAX_CHARS_LINE];
@@ -23,13 +23,16 @@ getDataPoints(int *p_numOfVectors, int *p_numOfFeatures, char *filename) {
 
     f = fopen(filename, "r");
     ourAssert(f != NULL);
+
     fscanf(f, "%s", line);
     *p_numOfFeatures = featuresCount(line);
     dataPoints = (double **) calloc(MAX_LINES, sizeof(double *));
     ourAssert(dataPoints != NULL);
+
     dataPointsArray = (double *) calloc(MAX_LINES * (*p_numOfFeatures),
                                         sizeof(double));
     ourAssert(dataPointsArray != NULL);
+    
     lineCounter = 0;
     do {
         dataPoints[lineCounter] =
@@ -109,9 +112,9 @@ double **createSymmetricMatrix(int n) {
     /* calculate how many values we need to save for symmetric matrix - how many
      * values are in the diagonal or the bottom triangle */
     int lenSymMatrix = (int) ((d_n * d_n) / 2 + d_n / 2);
-
     array = (double *) calloc(lenSymMatrix, sizeof(double));
     ourAssert(array != NULL);
+
     symMatrix = (double **) calloc(n, sizeof(double *));
     ourAssert(symMatrix != NULL);
 
@@ -185,9 +188,9 @@ double **identityMatrix(int n) {
 * Return: None
 */
 void printSymmetricMatrix(double **matrix, int lenMatrix) {
-
     int i;
     int j;
+
     for (i = 0; i < lenMatrix; i++) {
         for (j = 0; j < lenMatrix; j++) {
             if (i < j) {

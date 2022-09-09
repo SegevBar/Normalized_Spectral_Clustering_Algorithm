@@ -15,14 +15,13 @@
 */
 int main(int argc, char *argv[]) {
    
-    int k;
     char *goal;
     char *filename;
-    if (argc == 4) {
-        k = atoi(argv[1]);
-        goal = argv[2];
-        filename = argv[3];
-        goalFunc(k, goal, filename);
+
+    if (argc == 3) {
+        goal = argv[1];
+        filename = argv[2];
+        goalFunc(0, goal, filename);
     }
     return 0;
 }
@@ -35,7 +34,6 @@ int main(int argc, char *argv[]) {
 * Return: None
 */
 void goalFunc(int k, char* goal, char* filename) {
-
     if (strcmp(goal, "spk") == 0) {
         spk(k, filename);
     }
@@ -51,4 +49,8 @@ void goalFunc(int k, char* goal, char* filename) {
     if (strcmp(goal, "jacobi") == 0) {
         jacobi(filename);
     }
+    /*else {
+        printf("Invalid Input!");
+        abort();
+    }*/
 }

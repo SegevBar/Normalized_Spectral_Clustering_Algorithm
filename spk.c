@@ -39,7 +39,7 @@ double** normalizedSpectralClustering(int k, char *filename, int runKMeans) {
                                     weightedAdjacencyMatrix, numOfVectors);
     freeMatrix(weightedAdjacencyMatrix);
     free(diagonalDegreeArray);
-   
+
     matrix = calculateMatrixWithEigenvectorsAsColumns(lnorm, &k, numOfVectors);
     freeMatrix(lnorm);
     
@@ -73,6 +73,7 @@ double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *p_k,
     freeMatrix(matrix);
     
     descendingSort(eigenArray, lenMatrix);
+    /* get k with eigengap heuristic if k == 0 */
     if (*p_k == 0) {
         *p_k = eigengapHeuristic(eigenArray, lenMatrix);
     }
