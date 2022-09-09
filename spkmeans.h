@@ -28,7 +28,7 @@ void spk(int k, char* filename);
 
 void wam(char* filename);
 
-void ddg(filename);
+void ddg(char* filename);
 
 void lnorm(char* filename);
 

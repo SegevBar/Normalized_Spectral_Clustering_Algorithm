@@ -46,7 +46,7 @@ void goalFunc(int k, char* goal, char* filename) {
         ddg(filename);
     }
     if (strcmp(goal, "lnorm") == 0) {
-        lnorm();
+        lnorm(filename);
     }
     if (strcmp(goal, "jacobi") == 0) {
         jacobi(filename);

@@ -12,7 +12,7 @@
 * Action: Calculate and output the Diagonal Degree Matrix
 * Return: Prints Diagonal Degree Matrix
 */
-void ddg(filename) {
+void ddg(char* filename) {
     int numOfVectors, numOfFeatures;
     double **dataPoints, **weightedAdjacencyMatrix, **diagonalDegreeMatrix;
 
