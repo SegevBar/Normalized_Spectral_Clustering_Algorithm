@@ -8,11 +8,14 @@
 #define MAX_CHARS_LINE_MATRIX 551 /* at most 50 features '-XXXX.XXXX,' +\0  */
 #define MAX_LINES 50
 #define round(x)((((x)>-0.00005)&&((x)<=0))?(0):(x))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 /* ------------------------spk - step 6, Kmeans ----------------------------- */
 
 struct cluster {
-    double *centroid;
+    int vectors_count;
+    double* vectors_sum;
+    double* centroid;
     double *centroid_closest;
     int size;
     int equalTolLast;
@@ -49,7 +52,7 @@ double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
 double **
 createDDGMatrixforDDG(const double *DiagonalDegreeArray, int numOfVectors);
 
-void computePowOfMinusHalf(double *diagonalDegreeMatrix, int numOfVectors);
+/*void computePowOfMinusHalf(double *diagonalDegreeMatrix, int numOfVectors);*/
 
 double **
 createLnorm(double **weightedAdjacencyMatrix, double *diagonalDegreeArray,
@@ -116,8 +119,6 @@ void mergeSort(EIGEN eigenArray[], int lenArray);
 
 void merge(EIGEN eigenArray[], int leftStart, int leftEnd, int rightEnd);
 
-int min(int x, int y);
-
 int compareEIGEN(EIGEN e1, EIGEN e2);
 
 void ourAssert(int trueOrFalse);
@@ -132,7 +133,7 @@ int featuresCount(const char *line);
 
 /* --------------------------------- main ----------------------------------- */
 
-void normalizedSpectralClustering(int k, char *filename);
+double **normalizedSpectralClustering(int k, char *filename, int runKMeans);
 
 double **stepsOneToFive(double **dataPoints, int *p_k, int numOfVectors,
                         int numOfFeatures);
