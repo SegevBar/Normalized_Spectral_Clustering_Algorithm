@@ -52,14 +52,6 @@ double** normalizedSpectralClustering(int k, char *filename, int runKMeans) {
 }
 
 /*
-* Funcion TO DELETE
-*/
-double **stepsOneToFive(double **dataPoints, int *p_k, int numOfVectors,
-                        int numOfFeatures) {
-    
-}
-
-/*
 * Funcion: 
 * -----------------------------------------------------------------------------
 * Params: Symmetric Matrix, k pointer, Matrix size (1D)

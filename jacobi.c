@@ -14,7 +14,7 @@
 * Return: Prints eigenvalues and eigenvectors
 */
 void jacobi(char* filename) {
-    int numOfVectors, numOfFeatures;
+    int numOfVectors;
     double **matrix, **eigenvectorsMatrix;
 
     matrix = readSymatricMatrixFromFile(filename, &numOfVectors);

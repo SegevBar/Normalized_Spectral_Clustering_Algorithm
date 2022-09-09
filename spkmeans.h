@@ -61,15 +61,14 @@ double **createWeightedAdjacencyMatrix(double **dataPoints, int numOfVectors,
                                        int numOfFeaturs);
 
 double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
-                                      int numOfVectors);
+                                      int numOfVectors)
 
-double **
-createDDGMatrixforDDG(const double *DiagonalDegreeArray, int numOfVectors);
+createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors);
 
 /*void computePowOfMinusHalf(double *diagonalDegreeMatrix, int numOfVectors);*/
 
 double **
-createLnorm(double **weightedAdjacencyMatrix, double *diagonalDegreeArray,
+createLnorm(double *diagonalDegreeArray, double **weightedAdjacencyMatrix, 
             int numOfVectors);
 
 /* ----------------------- spk - steps 3-5, Jacobi -------------------------- */
@@ -148,9 +147,6 @@ int featuresCount(const char *line);
 /* --------------------------------- main ----------------------------------- */
 
 double **normalizedSpectralClustering(int k, char *filename, int runKMeans);
-
-double **stepsOneToFive(double **dataPoints, int *p_k, int numOfVectors,
-                        int numOfFeatures);
 
 void goalFunc(int k, char *goal, char *filename);
 
