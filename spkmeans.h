@@ -12,6 +12,8 @@
 
 /* ------------------------spk - step 6, Kmeans ----------------------------- */
 
+
+
 struct cluster {
     int vectors_count;
     double* vectors_sum;
@@ -21,6 +23,18 @@ struct cluster {
     int equalTolLast;
 };
 typedef struct cluster CLUSTER;
+
+void spk(int k, char* filename);
+
+void wam(char* filename);
+
+void ddg(filename);
+
+void lnorm(char* filename);
+
+void jacobi(char* filename);
+
+
 
 void initCluster(CLUSTER *curCluster, double *dataPoint, int numOfFeatures);
 
