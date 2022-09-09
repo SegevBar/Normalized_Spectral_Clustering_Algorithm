@@ -201,9 +201,7 @@ void printSymmetricMatrix(double **matrix, int lenMatrix) {
             if (j != lenMatrix - 1) {
                 printf(",");
             } else {
-                if (i != lenMatrix - 1) {
-                    printf("\n");
-                }
+                printf("\n");
             }
         }
     }
