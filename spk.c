@@ -72,7 +72,7 @@ double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *p_k,
     eigenArray = createArrayOfEigens(eigenvectorsMatrix, matrix, lenMatrix);
     freeMatrix(matrix);
     
-    mergeSort(eigenArray, lenMatrix);
+    descendingSort(eigenArray, lenMatrix);
     if (*p_k == 0) {
         *p_k = eigengapHeuristic(eigenArray, lenMatrix);
     }
@@ -132,6 +132,7 @@ int eigengapHeuristic(EIGEN *eigenArray, int lenArray) {
     }
     return max_index + 1;
 }
+
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
@@ -180,6 +181,33 @@ calculateRootOfSumOfSquaresRows(double **matrix, int rows, int columns) {
     }
     return arraySumOfSquaresColumns;
 }
+
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: EIGEN array, EIGEN array length
+* Action: Sorts EIGEN array in descending order
+* Return: None
+*/
+void descendingSort(EIGEN* eigenArray, int lenArray) {
+    int i, j;
+    double tmpEigenVal, *tmpEigenVector;
+ 
+    for (i = 0; i < lenArray; ++i) {
+        for (j = i + 1; j < lenArray; ++j) {
+            if (eigenArray[i].eigenValue < eigenArray[j].eigenValue) {
+                tmpEigenVal = eigenArray[i].eigenValue;
+                eigenArray[i].eigenValue = eigenArray[j].eigenValue;
+                eigenArray[j].eigenValue = tmpEigenVal;
+
+                tmpEigenVector = (eigenArray[i].eigenVector);
+                eigenArray[i].eigenVector = (eigenArray[j].eigenVector);
+                eigenArray[j].eigenVector = tmpEigenVector;
+            }
+        }
+    }
+}
+
 
 /*
 * Funcion: 

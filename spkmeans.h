@@ -36,6 +36,8 @@ void lnorm(char* filename);
 
 void jacobi(char* filename);
 
+void descendingSort(EIGEN* eigenArray, int lenArray);
+
 void initCluster(CLUSTER *curCluster, double *dataPoint, int numOfFeatures);
 
 CLUSTER *initializeClusters(double **dataPoints, int K);
