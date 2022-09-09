@@ -12,23 +12,13 @@
 
 /* ------------------------spk - step 6, Kmeans ----------------------------- */
 
-
-
 struct cluster {
-    int vectors_count;
-    double* vectors_sum;
-    double* centroid;
+    double *centroid;
     double *centroid_closest;
     int size;
     int equalTolLast;
 };
 typedef struct cluster CLUSTER;
-
-struct eigen {
-    double *eigenVector;
-    double eigenValue;
-};
-typedef struct eigen EIGEN;
 
 void spk(int k, char* filename);
 
@@ -40,7 +30,11 @@ void lnorm(char* filename);
 
 void jacobi(char* filename);
 
-
+struct eigen {
+    double *eigenVector;
+    double eigenValue;
+};
+typedef struct eigen EIGEN;
 
 void initCluster(CLUSTER *curCluster, double *dataPoint, int numOfFeatures);
 
@@ -67,7 +61,7 @@ double **createWeightedAdjacencyMatrix(double **dataPoints, int numOfVectors,
                                        int numOfFeaturs);
 
 double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
-                                      int numOfVectors)
+                                      int numOfVectors);
 
 double **createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors);
 
