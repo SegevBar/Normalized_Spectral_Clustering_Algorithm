@@ -20,6 +20,12 @@ struct cluster {
 };
 typedef struct cluster CLUSTER;
 
+struct eigen {
+    double *eigenVector;
+    double eigenValue;
+};
+typedef struct eigen EIGEN;
+
 void spk(int k, char* filename);
 
 void wam(char* filename);
@@ -29,12 +35,6 @@ void ddg(char* filename);
 void lnorm(char* filename);
 
 void jacobi(char* filename);
-
-struct eigen {
-    double *eigenVector;
-    double eigenValue;
-};
-typedef struct eigen EIGEN;
 
 void initCluster(CLUSTER *curCluster, double *dataPoint, int numOfFeatures);
 
