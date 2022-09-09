@@ -188,3 +188,98 @@ calculateRootOfSumOfSquaresRows(double **matrix, int rows, int columns) {
     }
     return arraySumOfSquaresColumns;
 }
+
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: EIGEN array, EIGEN array length
+* Action: Performs merge sort algorithm
+* Return: None
+*/
+void mergeSort(EIGEN eigenArray[], int lenArray) {
+
+    int currSize; /* cur size of the subarrays that we merge */
+    int leftStart;
+    for (currSize = 1; currSize <= lenArray - 1; currSize = 2 * currSize) {
+        for (leftStart = 0;
+             leftStart < lenArray - 1; leftStart += 2 * currSize) {
+            int leftEnd = min(leftStart + currSize - 1, lenArray - 1);
+            int rightEnd = min(leftStart + 2 * currSize - 1, lenArray - 1);
+            merge(eigenArray, leftStart, leftEnd, rightEnd);
+        }
+    }
+}
+
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: EIGEN array, pointers to indexes in arrays
+* Action: Merges 2 arrays sorted arrays (merge sort)
+* Return: None
+*/
+void merge(EIGEN eigenArray[], int leftStart, int leftEnd, int rightEnd) {
+
+    int i, j, k;
+    EIGEN *leftArray, *rightArray;
+    int lenLeftArray = leftEnd - leftStart + 1;
+    int lenRightArray = rightEnd - leftEnd; /* rightStart = leftEnd + 1 */
+
+    leftArray = (EIGEN *) calloc(lenLeftArray, sizeof(EIGEN));
+    ourAssert(leftArray != NULL);
+    rightArray = (EIGEN *) calloc(lenRightArray, sizeof(EIGEN));
+    ourAssert(rightArray != NULL);
+
+    /* copy values to temp leftArray and rightArray */
+    for (i = 0; i < lenLeftArray; i++)
+        leftArray[i] = eigenArray[leftStart + i];
+    for (j = 0; j < lenRightArray; j++)
+        rightArray[j] = eigenArray[leftEnd + 1 + j];
+
+    i = 0;
+    j = 0;
+    k = leftStart;
+    /* merge the two subarrays */
+    while (i < lenLeftArray && j < lenRightArray) {
+        if (compareEIGEN(leftArray[i], rightArray[j]) <= 0) {
+            eigenArray[k] = leftArray[i];
+            i++;
+        } else {
+            eigenArray[k] = rightArray[j];
+            j++;
+        }
+        k++;
+    }
+
+    /* copy the reminded values */
+    while (i < lenLeftArray) {
+        eigenArray[k] = leftArray[i];
+        i++;
+        k++;
+    }
+    while (j < lenRightArray) {
+        eigenArray[k] = rightArray[j];
+        j++;
+        k++;
+    }
+    free(leftArray);
+    free(rightArray);
+}
+
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: 2 EIGENs
+* Action: Compares 2 EIGENs
+* Return: if EIGENs1 == EIGENs2 -> 0
+*         if EIGENs1 > EIGENs2 -> 1
+*         if EIGENs1 <>> EIGENs2 -> -1
+*/
+int compareEIGEN(EIGEN e1, EIGEN e2) {
+
+    if (e1.eigenValue > e2.eigenValue) {
+        return 1;
+    } else if (e1.eigenValue < e2.eigenValue) {
+        return -1;
+    }
+    return 0;
+}
