@@ -24,6 +24,12 @@ struct cluster {
 };
 typedef struct cluster CLUSTER;
 
+struct eigen {
+    double *eigenVector;
+    double eigenValue;
+};
+typedef struct eigen EIGEN;
+
 void spk(int k, char* filename);
 
 void wam(char* filename);
@@ -63,7 +69,7 @@ double **createWeightedAdjacencyMatrix(double **dataPoints, int numOfVectors,
 double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
                                       int numOfVectors)
 
-createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors);
+double **createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors);
 
 /*void computePowOfMinusHalf(double *diagonalDegreeMatrix, int numOfVectors);*/
 
@@ -73,11 +79,6 @@ createLnorm(double *diagonalDegreeArray, double **weightedAdjacencyMatrix,
 
 /* ----------------------- spk - steps 3-5, Jacobi -------------------------- */
 
-struct eigen {
-    double *eigenVector;
-    double eigenValue;
-};
-typedef struct eigen EIGEN;
 
 double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *p_k,
                                                   int lenMatrix);
