@@ -7,9 +7,9 @@
 
 
 /*
-* Funcion: 
+* Funcion: void jacobi(double** matrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Points matrix, Vector count, Vector dimension
+* Params: Vectors matrix, Vector count, Vector dimension
 * Action: Calculate and output the eigenvalues and eigenvectors
 * Return: Prints eigenvalues and eigenvectors
 */
@@ -32,34 +32,55 @@ void jacobi(double** matrix, int N, int vectorDim) {
 * Action: Execute jacobi algorithm
 * Return: Eigenvectors matrix
 */
-double **jacobiAlgorithm(double **matrix, int lenMatrix) {
-
+double **jacobiAlgorithm(double **matrix, int n) {
     int i;
     int j;
     int q;
     double c;
     double s;
-    double offMatrixPre;
-    double offMatrixPost;
+    double offA;
+    double offB;
     double **eigenvectorsMatrix;
-    offMatrixPre = off(matrix, lenMatrix);
-    eigenvectorsMatrix = identityMatrix(lenMatrix);
+    
+    offA = off(matrix, n);
+    eigenvectorsMatrix = createIdentityMatrix(n);
 
     for (q = 0; q < MAX_ITER_JACOBI; q++) {
-        if (checkIfDiagonalMatrix(matrix, lenMatrix)) {
+        if (matrixIsDiagonal(matrix, n)) {
             break;
         }
-        calculateMax(matrix, lenMatrix, &i, &j);
+        calculateMax(matrix, n, &i, &j);
         rotateMatrix(matrix, i, j, &s, &c);
-        transformMatrix(matrix, lenMatrix, i, j, s, c);
-        updateEigenvectors(eigenvectorsMatrix, lenMatrix, i, j, s, c);
-        offMatrixPost = off(matrix, lenMatrix);
-        if (offMatrixPre - offMatrixPost <= EPSLION) {
+        transformMatrix(matrix, n, i, j, s, c);
+        updateEigenvectors(eigenvectorsMatrix, n, i, j, s, c);
+        offB = off(matrix, n);
+        if (offA - offB <= EPSLION) {
             break;
         }
-        offMatrixPre = offMatrixPost;
+        offA = offB;
     }
     return eigenvectorsMatrix;
+}
+
+/*
+* Funcion: double off(double **matrix, int n)
+* -----------------------------------------------------------------------------
+* Params: a Symmetric Matrix and it's dimension (1D)
+* Action: Executes off function
+* Return: off funtion result
+*/
+double off(double **matrix, int n) {
+    int i, j;
+    double sum = 0;
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            if (i != j) {
+                sum += pow(matrix[i][j], 2);
+            }
+        }
+    }
+    return sum; 
 }
 
 /*
@@ -69,13 +90,12 @@ double **jacobiAlgorithm(double **matrix, int lenMatrix) {
 * Action: Checks if the matrix is a diagonal matrix
 * Return: diagonal matrix ? 1 : 0
 */
-int checkIfDiagonalMatrix(double **matrix, int lenMatrix) {
-
+int matrixIsDiagonal(double **matrix, int n) {
     int i;
     int j;
-    for (i = 0; i < lenMatrix; i++) {
+    for (i = 0; i < n; i++) {
         for (j = 0; j < i; j++) {
-            if (matrix[i][j] != 0) {
+            if (i != j && matrix[i][j] != 0) {
                 return 0; /* False */
             }
         }
@@ -91,15 +111,14 @@ int checkIfDiagonalMatrix(double **matrix, int lenMatrix) {
 * Action: Finds maximum absolut off-diagonal value and update ij
 * Return: None
 */
-void calculateMax(double **matrix, int lenMatrix, int *p_i, int *p_j) {
-
+void calculateMax(double **matrix, int n, int *p_i, int *p_j) {
     int t;
     int q;
     double max;
     *p_i = 1;
     *p_j = 0;
     max = fabs(matrix[1][0]);
-    for (t = 0; t < lenMatrix; t++) {
+    for (t = 0; t < n; t++) {
         for (q = 0; q < t; q++) {
             if (fabs(matrix[t][q]) > max) {
                 max = fabs(matrix[t][q]);
@@ -119,7 +138,6 @@ void calculateMax(double **matrix, int lenMatrix, int *p_i, int *p_j) {
 * Return: None
 */
 void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c) {
-
     double theta;
     double t;
     /* matrix[i][j] is in the bottom triangle so the formulas have been
@@ -142,9 +160,8 @@ void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c) {
 * Action: Transforms the matrix according to the rotation matrix
 * Return: None
 */
-void transformMatrix(double **matrix, int lenMatrix, int i, int j, double s,
+void transformMatrix(double **matrix, int n, int i, int j, double s,
                      double c) {
-
     int r;
     double *p_r_i;
     double *p_r_j;
@@ -155,7 +172,7 @@ void transformMatrix(double **matrix, int lenMatrix, int i, int j, double s,
     double temp_i_j;
     /* matrix[i][j] is in the bottom triangle, so the formulas have been
      * updated accordingly. */
-    for (r = 0; r < lenMatrix; r++) {
+    for (r = 0; r < n; r++) {
         if (r != i && r != j) {
             /* we save only values where rows >= columns because the matrix is
              * symmetric so we want to update only the values that we save */
@@ -193,13 +210,12 @@ void transformMatrix(double **matrix, int lenMatrix, int i, int j, double s,
 * Action: Multiplies matrix with the rotation matrix
 * Return: None
 */
-void updateEigenvectors(double **matrix, int lenMatrix, int i, int j, double s,
+void updateEigenvectors(double **matrix, int n, int i, int j, double s,
                         double c) {
-
     int q;
     double temp_i;
     double temp_j;
-    for (q = 0; q < lenMatrix; q++) {
+    for (q = 0; q < n; q++) {
         temp_i = matrix[q][i];
         temp_j = matrix[q][j];
         /* other values of the matrix are without change, because except of the
@@ -207,25 +223,4 @@ void updateEigenvectors(double **matrix, int lenMatrix, int i, int j, double s,
         matrix[q][j] = temp_j * c + temp_i * -s;
         matrix[q][i] = temp_j * s + temp_i * c;
     }
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D)
-* Action: Executes off function
-* Return: off funtion result
-*/
-double off(double **matrix, int lenMatrix) {
-
-    double sum;
-    int i;
-    int j;
-    sum = 0;
-    for (i = 0; i < lenMatrix; i++) {
-        for (j = 0; j < i; j++) {
-            sum += pow(matrix[i][j], 2);
-        }
-    }
-    return 2 * sum;
 }

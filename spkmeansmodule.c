@@ -3,15 +3,6 @@
 #include <Python.h>
 #include "spkmeans.h"
 
-static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args);
-static PyObject *nkMatrixToPython(double **nkMatrix, int N, int k);
-static PyObject *goalsOtherThenSpk(PyObject *self, PyObject *args);
-static PyObject *kmeans(PyObject *self, PyObject *args);
-static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N, 
-                                    int vectorDim);
-static CLUSTER *pythonInitializeClusters(PyObject *pythonClusters, int N);
-static void pythonInitCluster(CLUSTER *curCluster, int vectorDim);
-
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
@@ -21,7 +12,7 @@ static void pythonInitCluster(CLUSTER *curCluster, int vectorDim);
 */
 static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args) {
     /* This function get the argument k and the file name from python.
-    The function then returns a PyObject containing the points which are
+    The function then returns a PyObject containing the vectors which are
     calculated in steps 1 - 5 of the algorithm. */
 
     int k, N, vectorDim;
@@ -106,17 +97,17 @@ static PyObject *kmeans(PyObject *self, PyObject *args) {
     * It gets a PyObjects containing the data points and a PyObject containing
     * the clusters and number of features.
     * The function runs the kmeans algorithm */
-    PyObject *pythonPoints;
+    PyObject *pythonVectors;
     PyObject *pythonClusters;
     CLUSTER *clusters;
     int k, N;
     double **vectorsMatrix;
 
-    if (!PyArg_ParseTuple(args, "00i", &pythonPoints, &pythonClusters, &k)) {
+    if (!PyArg_ParseTuple(args, "00i", &pythonVectors, &pythonClusters, &k)) {
         return NULL;
     }
-    N = PyList_Size(pythonPoints);
-    vectorsMatrix = getPointsFromPython(pythonPoints, N, k);
+    N = PyList_Size(pythonVectors);
+    vectorsMatrix = getVectorsFromPython(pythonVectors, N, k);
     clusters = pythonInitializeClusters(pythonClusters, k);
     kmeansmain(clusters, vectorsMatrix, k, N);
 
@@ -136,17 +127,17 @@ static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N,
     and the number of features.
     This function copies the python object data points into a dynamic array and returns it. */
 
-    double **vectorsMatrix, *pointsArray;
+    double **vectorsMatrix, *vectorsArray;
     int i; int j;
     PyObject *point;
 
     vectorsMatrix = (double **) calloc(N, sizeof(double *));
     validateAction(vectorsMatrix != NULL);
-    pointsArray = (double *) calloc(vectorDim * N, sizeof(double));
-    validateAction(pointsArray != NULL);
+    vectorsArray = (double *) calloc(vectorDim * N, sizeof(double));
+    validateAction(vectorsArray != NULL);
     
     for (i = 0; i < N; i++) {
-        vectorsMatrix[i] = pointsArray + i * (vectorDim);
+        vectorsMatrix[i] = vectorsArray + i * (vectorDim);
         point = PyList_GetItem(pythonVectorsMatrix, i);
 
         for (j = 0; j < vectorDim; j++) {

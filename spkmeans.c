@@ -18,11 +18,11 @@ int main(int argc, char *argv[]) {
     char *goal;
     char *filename;
 
-    if (argc == 3) {
-        goal = argv[1];
-        filename = argv[2];
-        runGoal(0, goal, filename);
-    }
+    validateInput(argc == 3);
+    goal = argv[1];
+    filename = argv[2];
+    runGoal(0, goal, filename);
+
     return 0;
 }
 
@@ -41,10 +41,7 @@ void runGoal(int k, char* goal, char* filename) {
     N = getVectorCount(filename);
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
 
-    if (strcmp(goal, "spk") == 0) {
-        spk(k, vectorsMatrix, N, vectorDim);
-    }
-    else if (strcmp(goal, "wam") == 0) {
+    if (strcmp(goal, "wam") == 0) {
         wam(vectorsMatrix, N, vectorDim);
     }
     else if (strcmp(goal, "ddg") == 0) {
@@ -56,8 +53,10 @@ void runGoal(int k, char* goal, char* filename) {
     else if (strcmp(goal, "jacobi") == 0) {
         jacobi(vectorsMatrix, N, vectorDim);
     }
+    else if (strcmp(goal, "spk") == 0) {
+        spk(k, vectorsMatrix, N, vectorDim);
+    }
     else {
-        printf("Invalid Input!");
-        abort();
+        validateInput(0);
     }
 }

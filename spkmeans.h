@@ -32,59 +32,57 @@ double** getVectorsMatrix(char *filename, int N, int dim);
 int getVectorCount(char *filename);
 int getVectorDim(char *filename);
 double** createSquareMatrix(int n);
+void freeMatrix(double **matrix, int n);
+void validateAction(int bool);
+void validateInput(int bool);
 
-double **createSymmetricMatrix(int n);
-double **createRegularSquareMatrix(int n);
+
+
 double **createRegularMatrix(int rows, int columns);
 double **identityMatrix(int n);
-void printSymmetricMatrix(double **matrix, int lenMatrix);
+void printSymmetricMatrix(double **matrix, int n);
 void printMatrix(double **matrix, int rows, int columns);
 void printTransposedMatrix(double **matrix, int rows, int columns);
-void printDiagonal(double **matrix, int lenMatrix);
-void freeMatrix(double **matrix, int n);
-void validateAction(int trueOrFalse);
+void printDiagonal(double **matrix, int n);
+
 
 /* spk.c */
 double** spk(int k, double** vectorsMatrix, int N, int vectorDim);
-double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *kp,
-                                                  int lenMatrix);
-EIGEN *createArrayOfEigens(double **vectorsMatrix, double **valuesMatrix,
-                           int lenMatrix);
+double **getEigenvectorsMatrix(double **matrix, int *kp, int n);
+EIGEN *getEigensArray(double **vectorsMatrix, double **valuesMatrix,
+                           int n);
 int eigengapHeuristic(EIGEN *eigenArray, int arrLength);
 void normalizeMatrix(double **matrix, int rows, int columns);
-double* calculateRootOfSumOfSquaresRows(double **matrix, int rows, 
+double* getRootOfSumOfSquares(double **matrix, int rows, 
                                         int columns);
 void descendingSort(EIGEN* eigenArray, int arrLength);
 
 
 /* wam.c */
 void wam(double** vectorsMatrix, int N, int vectorDim);
-double **createWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
+double **getWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
                                        int vectorDim);
 
 /* ddg.c */
 void ddg(double** vectorsMatrix, int N, int vectorDim);
-double** createDDGMatrixforDDG(double **weightedAdjacencyMatrix, 
-                               int N);
-double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
-                                      int N);
+double** getDiagonalDegreeMatrix(double **wam, int N);
+double* getDdgDiagonal(double **wam, int N);
 
 /* lnorm.c */
 void lnorm(double** vectorsMatrix, int N, int vectorDim);
-double** createLnorm(double *diagonalDegreeArray, 
-                     double **weightedAdjacencyMatrix, int N);
+double** getLnorm(double *ddgDiagonal, double **wam, int N);
 
 /* jacobi */
 void jacobi(double** vectorsMatrix, int N, int vectorDim);
-double **jacobiAlgorithm(double **matrix, int lenMatrix);
-int checkIfDiagonalMatrix(double **matrix, int lenMatrix);
-void calculateMax(double **matrix, int lenMatrix, int *p_i, int *p_j);
+double **jacobiAlgorithm(double **matrix, int n);
+int checkIfDiagonalMatrix(double **matrix, int n);
+void calculateMax(double **matrix, int n, int *p_i, int *p_j);
 void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c);
-void transformMatrix(double **matrix, int lenMatrix, int i, int j, double s,
+void transformMatrix(double **matrix, int n, int i, int j, double s,
                      double c);
-void updateEigenvectors(double **matrix, int lenMatrix, int i, int j, double s,
+void updateEigenvectors(double **matrix, int n, int i, int j, double s,
                         double c);
-double off(double **matrix, int lenMatrix);
+double off(double **matrix, int n);
 
 /* kmeans */
 void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
@@ -97,5 +95,15 @@ double euclideanNorm(const double *datapoint1, const double *datapoint2,
                      int vectorDim);
 void printCentroids(CLUSTER *clusters, int vectorDim);
 void freeClusters(CLUSTER *clusters, int K);
+
+/* spkmeansmodule.c */
+static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args);
+static PyObject *nkMatrixToPython(double **nkMatrix, int N, int k);
+static PyObject *goalsOtherThenSpk(PyObject *self, PyObject *args);
+static PyObject *kmeans(PyObject *self, PyObject *args);
+static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N, 
+                                    int vectorDim);
+static CLUSTER *pythonInitializeClusters(PyObject *pythonClusters, int N);
+static void pythonInitCluster(CLUSTER *curCluster, int vectorDim);
 
 #endif

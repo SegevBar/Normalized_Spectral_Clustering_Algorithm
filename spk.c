@@ -6,9 +6,9 @@
 #include "spkmeans.h"
 
 /*
-* Funcion: 
+* Funcion: double** spk(int k, double** vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: k, Points matrix, Vector count, Vector dimension
+* Params: k, Vectors matrix, Vector count, Vector dimension
 * Action: performs The Normalized Spectral Clustering Algorithm *WITHOUT*
 *         kmeans (first step executes at python program)
 * Return: runKMeans ? kkmeansmain : Eigenvectors matrix
@@ -17,7 +17,7 @@ double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
     double **weightedAdjacencyMatrix, *diagonalDegreeArray; 
     double **lnorm, **matrix;
 
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
+    weightedAdjacencyMatrix = getWeightedAdjacencyMatrix
                                 (vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
     diagonalDegreeArray = calculateDiagonalDegreeMatrix(
@@ -27,7 +27,7 @@ double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
     freeMatrix(weightedAdjacencyMatrix, N);
     free(diagonalDegreeArray);
 
-    matrix = calculateMatrixWithEigenvectorsAsColumns(lnorm, &k, N);
+    matrix = getEigenvectorsMatrix(lnorm, &k, N);
     freeMatrix(lnorm, N);
     
     normalizeMatrix(matrix, N, k);
@@ -43,8 +43,8 @@ double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
 *         matrix
 * Return: Matrix With Eigenvectors As Columns
 */
-double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *kp,
-                                                  int lenMatrix) {
+double **getEigenvectorsMatrix(double **matrix, int *kp,
+                                                  int n) {
 
     EIGEN *eigenArray; /* array of EIGENS -
      * structs that contain an eigenvalue and a pointer to its eigenvector. */
@@ -52,22 +52,22 @@ double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *kp,
     double **newMatrix;
     int i;
     int j;
-    eigenvectorsMatrix = jacobiAlgorithm(matrix, lenMatrix);
-    eigenArray = createArrayOfEigens(eigenvectorsMatrix, matrix, lenMatrix);
-    freeMatrix(matrix, lenMatrix);
+    eigenvectorsMatrix = jacobiAlgorithm(matrix, n);
+    eigenArray = createArrayOfEigens(eigenvectorsMatrix, matrix, n);
+    freeMatrix(matrix, n);
     
-    descendingSort(eigenArray, lenMatrix);
+    descendingSort(eigenArray, n);
     /* get k with eigengap heuristic if k == 0 */
     if (*kp == 0) {
-        *kp = eigengapHeuristic(eigenArray, lenMatrix);
+        *kp = eigengapHeuristic(eigenArray, n);
     }
-    newMatrix = createRegularMatrix(lenMatrix, *kp);
+    newMatrix = createRegularMatrix(n, *kp);
     for (j = 0; j < *kp; j++) {
-        for (i = 0; i < lenMatrix; i++) {
-            newMatrix[i][j] = *(eigenArray[j].eigenVector + lenMatrix * i);
+        for (i = 0; i < n; i++) {
+            newMatrix[i][j] = *(eigenArray[j].eigenVector + n * i);
         }
     }
-    freeMatrix(eigenvectorsMatrix, lenMatrix);
+    freeMatrix(eigenvectorsMatrix, n);
     free(eigenArray);
     return newMatrix;
 }
@@ -79,13 +79,13 @@ double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *kp,
 * Action: Create array of EIGENS representing eigenvalue and its' eigenvector
 * Return: Array of EIGENS representing eigenvalue and its' eigenvector
 */
-EIGEN *createArrayOfEigens(double **vectorsMatrix, double **valuesMatrix,
-                           int lenMatrix) {
+EIGEN *getEigensArray(double **vectorsMatrix, double **valuesMatrix,
+                           int n) {
     EIGEN *eigenArray;
     int i;
-    eigenArray = (EIGEN *) calloc(lenMatrix, sizeof(EIGEN));
+    eigenArray = (EIGEN *) calloc(n, sizeof(EIGEN));
     validateAction(eigenArray != NULL);
-    for (i = 0; i < lenMatrix; i++) {
+    for (i = 0; i < n; i++) {
         eigenArray[i].eigenValue = valuesMatrix[i][i];
         eigenArray[i].eigenVector = &vectorsMatrix[0][i];
     }

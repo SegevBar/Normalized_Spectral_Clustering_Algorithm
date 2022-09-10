@@ -8,9 +8,9 @@
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Input file, pointers to points amount and point size
-* Action: Reads points from inpuf file and save in metrix
-* Return: Points matrix
+* Params: Input file, pointers to vectors amount and point size
+* Action: Reads vectors from inpuf file and save in metrix
+* Return: Vectors matrix
 */
 double** getVectorsMatrix(char *filename, int N, int dim) {
     int i, j;
@@ -45,8 +45,8 @@ double** getVectorsMatrix(char *filename, int N, int dim) {
 * Funcion: 
 * -----------------------------------------------------------------------------
 * Params: Input file
-* Action: Counts number of points in file
-* Return: Points count
+* Action: Counts number of vectors in file
+* Return: vectors count
 */
 int getVectorCount(char *filename) {
     int N = 0;
@@ -109,49 +109,6 @@ double** createSquareMatrix(int n) {
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Symmetric Matrix size (1D)
-* Action: Creates symetric matrix - values in the diagonal or bottom triangle
-* Return: Symmetric Matrix
-*/
-double **createSymmetricMatrix(int n) {
-
-    int i;
-    double *array;
-    double *cur;
-    double **symMatrix;
-    double d_n = (double) n;
-    /* calculate how many values we need to save for symmetric matrix - how many
-     * values are in the diagonal or the bottom triangle */
-    int lenSymMatrix = (int) ((d_n * d_n) / 2 + d_n / 2);
-    array = (double *) calloc(lenSymMatrix, sizeof(double));
-    validateAction(array != NULL);
-
-    symMatrix = (double **) calloc(n, sizeof(double *));
-    validateAction(symMatrix != NULL);
-
-    cur = array;
-    for (i = 0; i < n; i++) {
-        symMatrix[i] = cur + i;
-        cur = symMatrix[i];
-    }
-    return symMatrix;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Length of squared identity matrix
-* Action: Creates regular squared matrix
-* Return: Squared matrix
-*/
-double **createRegularSquareMatrix(int n) {
-
-    return createRegularMatrix(n, n);
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
 * Params: rows and columns number 
 * Action: Create empty matrix
 * Return: Matrix
@@ -180,11 +137,11 @@ double **createRegularMatrix(int rows, int columns) {
 * Action: Create identity matrix
 * Return: Identity matrix
 */
-double **identityMatrix(int n) {
+double **createIdentityMatrix(int n) {
 
     int i;
     double **matrix;
-    matrix = createRegularSquareMatrix(n);
+    matrix = createSquareMatrix(n); /* allocate memory */
     for (i = 0; i < n; i++) {
         matrix[i][i] = 1;
     }
@@ -198,18 +155,18 @@ double **identityMatrix(int n) {
 * Action: Prints matrix
 * Return: None
 */
-void printSymmetricMatrix(double **matrix, int lenMatrix) {
+void printSymmetricMatrix(double **matrix, int n) {
     int i;
     int j;
 
-    for (i = 0; i < lenMatrix; i++) {
-        for (j = 0; j < lenMatrix; j++) {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             if (i < j) {
                 printf("%.4f", round(matrix[j][i]));
             } else {
                 printf("%.4f", round(matrix[i][j]));
             }
-            if (j != lenMatrix - 1) {
+            if (j != n - 1) {
                 printf(",");
             } else {
                 printf("\n");
@@ -225,20 +182,17 @@ void printSymmetricMatrix(double **matrix, int lenMatrix) {
 * Action: Prints matrix
 * Return: None
 */
-void printMatrix(double **matrix, int rows, int columns) {
-
+void printMatrix(double **matrix, int n, int m) {
     int i;
     int j;
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < columns; j++) {
-            if (j != columns - 1) {
-                printf("%.4f,", round(matrix[i][j]));
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            printf("%.4f", round(matrix[i][j]));
+            if (j != m-1) {
+                printf(",");
             } else {
-                if (i != rows - 1) {
-                    printf("%.4f\n", round(matrix[i][j]));
-                } else {
-                    printf("%.4f", round(matrix[i][j]));
-                }
+                printf("\n");
             }
         }
     }
@@ -277,11 +231,11 @@ void printTransposedMatrix(double **matrix, int rows, int columns) {
 * Action: Prints the transposed matrix
 * Return: None
 */
-void printDiagonal(double **matrix, int lenMatrix) {
+void printDiagonal(double **matrix, int n) {
 
     int i;
-    for (i = 0; i < lenMatrix; i++) {
-        if (i != lenMatrix - 1) {
+    for (i = 0; i < n; i++) {
+        if (i != n - 1) {
             printf("%.4f,", round(matrix[i][i]));
         } else {
             printf("%.4f\n", round(matrix[i][i]));
@@ -305,12 +259,30 @@ void freeMatrix(double **matrix, int n) {
 }
 
 /*
-* Funcion TO DELETE
+* Funcion: void validateAction(int bool)
+* -----------------------------------------------------------------------------
+* Params: boolean
+* Action: Abort program if an error has occured
+* Return: None
 */
-void validateAction(int trueOrFalse) {
-
-    if (trueOrFalse == 0) {
-        printf("An Error Has Occured");
+void validateAction(int bool) {
+    if (bool == 0) {
+        printf("An Error Has Occurred\n");
         abort();
     }
+}
+
+/*
+* Funcion: void validateInput(int bool)
+* -----------------------------------------------------------------------------
+* Params: boolean
+* Action: Abort program if the input isn't valid
+* Return: None
+*/
+void validateInput(int bool) {
+    if (bool == 0) {
+        printf("Invalid Input!\n");
+        abort();
+    }
+    
 }

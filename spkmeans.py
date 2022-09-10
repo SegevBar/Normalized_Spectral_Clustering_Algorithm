@@ -30,9 +30,9 @@ Return:
 def spk(k, filename):
     # The function performs the normalizedSpectralClustering algorithm
     vectorsMatrix = spkmeansmodule.spkWithoutKmeans(k, filename)
-    pointsArray = np.array(vectorsMatrix)
-    clusters = kmeanspp(pointsArray)
-    spkmeansmodule.kmeans(vectorsMatrix, clusters, np.size(pointsArray, 1))
+    VectorsArray = np.array(vectorsMatrix)
+    clusters = kmeanspp(VectorsArray)
+    spkmeansmodule.kmeans(vectorsMatrix, clusters, np.size(VectorsArray, 1))
 
 '''
 Funcion: 
@@ -47,7 +47,7 @@ def kmeanspp(vectorsMatrix):
     len_column = np.size(vectorsMatrix, 0)
     len_row = np.size(vectorsMatrix, 1)
 
-    #rearrange dapa points for algorithm 
+    #rearrange vectors for algorithm 
     vectorsMatrix = np.hstack(
         (np.arange(len_column).reshape(len_column, 1), vectorsMatrix))
 

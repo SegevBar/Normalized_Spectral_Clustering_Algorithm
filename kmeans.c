@@ -8,7 +8,7 @@
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Clusters, Points matrix and its' dimentions
+* Params: Clusters, Vectors matrix and its' dimentions
 * Action: Executes the kmeans algorithm
 * Return: Print output centroids
 */
@@ -58,7 +58,7 @@ void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Points matrix, Point size
+* Params: Vectors matrix, Point size
 * Action: Create k clusters 
 * Return: Array of clusters
 */
@@ -144,24 +144,21 @@ void updateCentroid(CLUSTER *curCluster, int vectorDim) {
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: 2 points, Point size
+* Params: 2 Vectors, Point size
 * Action: Computes euclidean norm between 2 points
 * Return: square norm
 */
-double euclideanNorm(const double *datapoint1, const double *datapoint2,
+double euclideanNorm(const double *vector1, const double *vector2,
                      int vectorDim) {
-
-    int i;
-    double sum = 0;
-    double temp;
+    double sum = 0.0;
+    double res;
+    int i = 0;
 
     for (i = 0; i < vectorDim; i++) {
-        temp = datapoint1[i] - datapoint2[i];
-        temp *= temp;
-        sum += temp;
+        sum += (vector1[i]-vector2[i])*(vector1[i]-vector2[i]);
     }
-
-    return sum;
+    res = sqrt(sum);
+    return res;
 }
 
 /*

@@ -6,73 +6,69 @@
 #include "spkmeans.h"
 
 /*
-* Funcion: 
+* Funcion: void ddg(double** vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Points matrix, Vector count, Vector dimension
+* Params: Vectors matrix, Vector count, Vector dimension
 * Action: Calculate and output the Diagonal Degree Matrix
 * Return: Prints Diagonal Degree Matrix
 */
 void ddg(double** vectorsMatrix, int N, int vectorDim) {
-    double **weightedAdjacencyMatrix, **diagonalDegreeMatrix;
+    double **wam, **ddg;
 
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
-                                            (vectorsMatrix, N, vectorDim);
+    wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
-    diagonalDegreeMatrix = createDDGMatrixforDDG(weightedAdjacencyMatrix,   
-                           N);
-    printMatrix(diagonalDegreeMatrix, N, vectorDim);
+    ddg = getDiagonalDegreeMatrix(wam, N);
+    freeMatrix(wam, N);
     
-    freeMatrix(weightedAdjacencyMatrix, N);
-    freeMatrix(diagonalDegreeMatrix, N);
+    printMatrix(ddg, N, vectorDim);
+    freeMatrix(ddg, N);
 }
 
 /*
-* Funcion: 
+* Funcion: double** getDiagonalDegreeMatrix(double **wam, int N)
 * -----------------------------------------------------------------------------
-* Params: Weighted Adjacency Matrix, Points amount
+* Params: Weighted Adjacency Matrix, Vectors amount
 * Action: Creates Diagonal Degree Matrix
 * Return: Diagonal Degree Matrix
 */
-double** createDDGMatrixforDDG(double **weightedAdjacencyMatrix, 
-                               int N) {
-    double *DiagonalDegreeArray;
-    double **DiagonalDegreeMatrix;
+double** getDiagonalDegreeMatrix(double **wam, int N) {
+    double *diagonal;
+    double **ddg;
     int i;
 
-    DiagonalDegreeArray = calculateDiagonalDegreeMatrix
-                                    (weightedAdjacencyMatrix, N);
-    DiagonalDegreeMatrix = createRegularSquareMatrix(N);
+    diagonal = getDdgDiagonal(wam, N);
+    
+    ddg = createSquareMatrix(N); /* allocate memory */
     for (i = 0; i < N; i++) {
-        DiagonalDegreeMatrix[i][i] = DiagonalDegreeArray[i];
+        ddg[i][i] = diagonal[i];
     }
-    free(DiagonalDegreeArray);
-    return DiagonalDegreeMatrix;
+    free(diagonal);
+    return ddg;
 }
 
 /*
-* Funcion: 
+* Funcion: double *getDdgDiagonal(double **wam, int N)
 * -----------------------------------------------------------------------------
-* Params: Weighted Adjacency Matrix, Points amount
+* Params: Weighted Adjacency Matrix, Vectors amount
 * Action: Calculates the diagonal of the diagonal degree matrix
 * Return: Array of values in diagonal
 */
-double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
-                                      int N) {
+double* getDdgDiagonal(double **wam, int N) {
 
-    double *diagonalDegreeArray, sum;
+    double *diagonal; 
+    double sum;
     int i, j;
-    diagonalDegreeArray = (double *) calloc(N, sizeof(double));
-    validateAction(diagonalDegreeArray != NULL);
+    
+    diagonal = (double*) calloc(N, sizeof(double));
+    errorOccurred(diagonal != NULL);
+
+    /* sum wij at each row of wam */
     for (i = 0; i < N; i++) {
         sum = 0;
         for (j = 0; j < N; j++) {
-            if (j <= i) {
-                sum += weightedAdjacencyMatrix[i][j];
-            } else {
-                sum += weightedAdjacencyMatrix[j][i];
-            }
+            sum += wam[i][j];
         }
-        diagonalDegreeArray[i] = sum;
+        diagonal[i] = sum;
     }
-    return diagonalDegreeArray;
+    return diagonal;
 }

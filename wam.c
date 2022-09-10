@@ -6,44 +6,43 @@
 #include "spkmeans.h"
 
 /*
-* Funcion: 
+* Funcion: void wam(double** vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Points matrix, Vector count, Vector dimension
+* Params: Vectors matrix, Vector count, Vector dimension
 * Action: Calculate and output the Weighted Adjacency Matrix
 * Return: Prints Weighted Adjacency Matrix 
 */
 void wam(double** vectorsMatrix, int N, int vectorDim) {
-    double **weightedAdjacencyMatrix;
+    double **wam;
 
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
-                                    (vectorsMatrix, N, vectorDim);
+    wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);
-    printMatrix(weightedAdjacencyMatrix, N, N);
-    freeMatrix(weightedAdjacencyMatrix, N);
+    printMatrix(wam, N, N);
+    freeMatrix(wam, N);
 }
 
 /*
-* Funcion: 
+* Funcion: double **getWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
+*                                       int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Input points matrix, and it's dimentions
+* Params: Input vectors matrix, and it's dimentions
 * Action: Create Weighted Adjacency Matrix
 * Return: Weighted Adjacency Matrix
 */
-double **createWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
+double **getWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
                                        int vectorDim) {
-    double **weightedAdjacencyMatrix;
+    double **wam;
     int i, j;
-    double wij;
+    double wij, norm;
     
-    weightedAdjacencyMatrix = createSquareMatrix(N);
+    wam = createSquareMatrix(N); /* allocate memory */
     for(i = 0; i < N; i++){
         for(j = 0; j < i; j++){
-            wij = exp(-sqrt
-            (euclideanNorm(vectorsMatrix[i], vectorsMatrix[j],vectorDim)) / 2);
-            weightedAdjacencyMatrix[i][j] = wij;
-            weightedAdjacencyMatrix[j][i] = wij;
+            norm = euclideanNorm(vectorsMatrix[i], vectorsMatrix[j], vectorDim);
+            wij = exp(-norm/2);
+            wam[i][j] = wij;
+            wam[j][i] = wij;
         }
     }
-    return weightedAdjacencyMatrix;
+    return wam;
 }
-

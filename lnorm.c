@@ -6,60 +6,52 @@
 #include "spkmeans.h"
 
 /*
-* Funcion: 
+* Funcion: void lnorm(double** vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Points matrix, Vector count, Vector dimension
+* Params: Vectors matrix, Vector count, Vector dimension
 * Action: Calculate and output the Normalized Graph Laplacian
 * Return: Prints Normalized Graph Laplacian
 */
 void lnorm(double** vectorsMatrix, int N, int vectorDim) {
-    double **weightedAdjacencyMatrix, *diagonalDegreeArray;
+    double **wam, *ddgDiagonal;
     double **lnorm;
 
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
-                                            (vectorsMatrix, N, vectorDim);
+    wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
-    diagonalDegreeArray = calculateDiagonalDegreeMatrix
-                                            (weightedAdjacencyMatrix, N);
-    lnorm = createLnorm(diagonalDegreeArray, 
-                                    weightedAdjacencyMatrix, N);
-    printSymmetricMatrix(lnorm, N);
+    
+    ddgDiagonal = getDdgDiagonal(wam, N);
+    lnorm = getLnorm(ddgDiagonal, wam, N);
+    freeMatrix(wam, N);
+    free(ddgDiagonal);
 
-    freeMatrix(weightedAdjacencyMatrix, N);
-    free(diagonalDegreeArray);
+    printMatrix(lnorm, N, N);
     freeMatrix(lnorm, N);
 }
 
 /*
-* Funcion: 
+* Funcion: double** getLnorm(double *ddgDiagonal, double **wam, int N)
 * -----------------------------------------------------------------------------
 * Params: Array of values in diagonal, Weighted Adjacency Matrix, Diagonal 
-*         Degree Matrix, Points amount
+*         Degree Matrix, Vectors amount
 * Action: Creates Lnorm
 * Return: Lnorm
 */
-double** createLnorm(double *diagonalDegreeArray, 
-                     double **weightedAdjacencyMatrix, int N) {
+double** getLnorm(double *ddgDiagonal, double **wam, int N) {
     double **lnormMatrix;
     int i, j;
 
     /* Sets values x in diagonal to (x)^(-1/2) */
     for (i = 0; i < N; i++) {
-        diagonalDegreeArray[i] = 1 / sqrt(diagonalDegreeArray[i]);
+        ddgDiagonal[i] = 1 / sqrt(ddgDiagonal[i]);
     }
 
-    lnormMatrix = createSymmetricMatrix(N);
+    lnormMatrix = createSquareMatrix(N); /* allocate memory */
+    /* calculate I-(D^-1/2)(W)(D^-1/2) */
     for (i = 0; i < N; i++) {
-        for (j = 0; j <= i; j++) {
-            if (i != j) {
-                lnormMatrix[i][j] = -diagonalDegreeArray[i] *
-                                    weightedAdjacencyMatrix[i][j] *
-                                    diagonalDegreeArray[j];
-            } else {
-                lnormMatrix[i][j] =
-                        1 -
-                        diagonalDegreeArray[i] * weightedAdjacencyMatrix[i][j] *
-                        diagonalDegreeArray[j];
+        for (j = 0; j < N; j++) {
+            lnormMatrix[i][j] = -ddgDiagonal[i]*wam[i][j]*ddgDiagonal[j];
+            if (i == j) {
+                lnormMatrix[i][j] = lnormMatrix[i][j] + 1;         
             }
         }
     }
