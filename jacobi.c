@@ -9,72 +9,20 @@
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Input file
+* Params: Points matrix, Vector count, Vector dimension
 * Action: Calculate and output the eigenvalues and eigenvectors
 * Return: Prints eigenvalues and eigenvectors
 */
-void jacobi(char* filename) {
-    int numOfVectors;
-    double **matrix, **eigenvectorsMatrix;
+void jacobi(double** matrix, int N, int vectorDim) {
+    double **eigenvectorsMatrix;
 
-    matrix = readSymatricMatrixFromFile(filename, &numOfVectors);
-    eigenvectorsMatrix = jacobiAlgorithm(matrix, numOfVectors);
+    eigenvectorsMatrix = jacobiAlgorithm(matrix, N);
     
-    printDiagonal(matrix, numOfVectors);
-    printTransposedMatrix(eigenvectorsMatrix, numOfVectors, numOfVectors);
+    printDiagonal(matrix, N);
+    printTransposedMatrix(eigenvectorsMatrix, N, vectorDim);
     
-    freeMatrix(matrix);
-    freeMatrix(eigenvectorsMatrix);
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Input file, pointer to points amount
-* Action: Reads points from inpuf file and save in metrix
-* Return: Points matrix
-*/
-double **readSymatricMatrixFromFile(char *filename, int *p_lenMatrix) {
-
-    FILE *f;
-    int i;
-    int j;
-    char line[MAX_CHARS_LINE_MATRIX];
-    char *left;
-    double *array;
-    double *cur;
-    double **symMatrix;
-    double d_n;
-    int lenArray;
-
-    f = fopen(filename, "r");
-    ourAssert(f != NULL);
-    fscanf(f, "%s", line);
-    *p_lenMatrix = featuresCount(line);
-
-    d_n = (double) *p_lenMatrix;
-    /* calculate how many values we need to save for symmetric matrix - how many
-     * values are in the diagonal or the bottom triangle */
-    lenArray = (int) ((d_n * d_n) / 2 + d_n / 2);
-
-    array = (double *) calloc(lenArray, sizeof(double));
-    ourAssert(array != NULL);
-    symMatrix = (double **) calloc(*p_lenMatrix, sizeof(double *));
-    ourAssert(symMatrix != NULL);
-
-    cur = array;
-    for (i = 0; i < *p_lenMatrix; i++) {
-        symMatrix[i] = cur + i;
-        cur = symMatrix[i];
-        left = line;
-        for (j = 0; j <= i; j++) {
-            symMatrix[i][j] = strtod(left, &left);
-            left++;
-        }
-        fscanf(f, "%s", line);
-    }
-    fclose(f);
-    return symMatrix;
+    freeMatrix(matrix, N);
+    freeMatrix(eigenvectorsMatrix, N);
 }
 
 /*

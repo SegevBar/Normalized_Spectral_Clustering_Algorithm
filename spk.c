@@ -5,49 +5,33 @@
 #include <math.h>
 #include "spkmeans.h"
 
-/* ***unite with normalizedSpectralClustering
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: k, file name
-* Action: performs The Normalized Spectral Clustering Algorithm
-* Return: None
-*/
-void spk(int k, char* filename) {
-    normalizedSpectralClustering(k, filename, 1);
-}
-
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: k, file name
-* Action: performs The Normalized Spectral Clustering Algorithm
+* Params: k, Points matrix, Vector count, Vector dimension
+* Action: performs The Normalized Spectral Clustering Algorithm *WITHOUT*
+*         kmeans (first step executes at python program)
 * Return: runKMeans ? kkmeansmain : Eigenvectors matrix
 */
-double** normalizedSpectralClustering(int k, char *filename, int runKMeans) {
-    int numOfVectors, numOfFeatures;
-    double **dataPoints, **weightedAdjacencyMatrix, *diagonalDegreeArray; 
+double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
+    double **weightedAdjacencyMatrix, *diagonalDegreeArray; 
     double **lnorm, **matrix;
-    CLUSTER *clusters;
 
-    dataPoints = getDataPoints(&numOfVectors, &numOfFeatures, filename);
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix(dataPoints,         
-                              numOfVectors, numOfFeatures);
-    freeMatrix(dataPoints);              
+    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
+                                (vectorsMatrix, N, vectorDim);
+    freeMatrix(vectorsMatrix, N);              
     diagonalDegreeArray = calculateDiagonalDegreeMatrix(
-                                    weightedAdjacencyMatrix, numOfVectors);
+                                    weightedAdjacencyMatrix, N);
     lnorm = createLnorm(diagonalDegreeArray, 
-                                    weightedAdjacencyMatrix, numOfVectors);
-    freeMatrix(weightedAdjacencyMatrix);
+                                    weightedAdjacencyMatrix, N);
+    freeMatrix(weightedAdjacencyMatrix, N);
     free(diagonalDegreeArray);
 
-    matrix = calculateMatrixWithEigenvectorsAsColumns(lnorm, &k, numOfVectors);
-    freeMatrix(lnorm);
+    matrix = calculateMatrixWithEigenvectorsAsColumns(lnorm, &k, N);
+    freeMatrix(lnorm, N);
     
-    normalizeMatrix(matrix, numOfVectors, k);
-    clusters = initializeClusters(matrix, k);
-    if (runKMeans == 1) {
-        kmeansmain(clusters, matrix, k, numOfVectors);
-    }
+    normalizeMatrix(matrix, N, k);
+    
     return matrix;
 }
 
@@ -59,7 +43,7 @@ double** normalizedSpectralClustering(int k, char *filename, int runKMeans) {
 *         matrix
 * Return: Matrix With Eigenvectors As Columns
 */
-double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *p_k,
+double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *kp,
                                                   int lenMatrix) {
 
     EIGEN *eigenArray; /* array of EIGENS -
@@ -70,20 +54,20 @@ double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *p_k,
     int j;
     eigenvectorsMatrix = jacobiAlgorithm(matrix, lenMatrix);
     eigenArray = createArrayOfEigens(eigenvectorsMatrix, matrix, lenMatrix);
-    freeMatrix(matrix);
+    freeMatrix(matrix, lenMatrix);
     
     descendingSort(eigenArray, lenMatrix);
     /* get k with eigengap heuristic if k == 0 */
-    if (*p_k == 0) {
-        *p_k = eigengapHeuristic(eigenArray, lenMatrix);
+    if (*kp == 0) {
+        *kp = eigengapHeuristic(eigenArray, lenMatrix);
     }
-    newMatrix = createRegularMatrix(lenMatrix, *p_k);
-    for (j = 0; j < *p_k; j++) {
+    newMatrix = createRegularMatrix(lenMatrix, *kp);
+    for (j = 0; j < *kp; j++) {
         for (i = 0; i < lenMatrix; i++) {
             newMatrix[i][j] = *(eigenArray[j].eigenVector + lenMatrix * i);
         }
     }
-    freeMatrix(eigenvectorsMatrix);
+    freeMatrix(eigenvectorsMatrix, lenMatrix);
     free(eigenArray);
     return newMatrix;
 }
@@ -100,7 +84,7 @@ EIGEN *createArrayOfEigens(double **vectorsMatrix, double **valuesMatrix,
     EIGEN *eigenArray;
     int i;
     eigenArray = (EIGEN *) calloc(lenMatrix, sizeof(EIGEN));
-    ourAssert(eigenArray != NULL);
+    validateAction(eigenArray != NULL);
     for (i = 0; i < lenMatrix; i++) {
         eigenArray[i].eigenValue = valuesMatrix[i][i];
         eigenArray[i].eigenVector = &vectorsMatrix[0][i];
@@ -116,15 +100,14 @@ EIGEN *createArrayOfEigens(double **vectorsMatrix, double **valuesMatrix,
 * Action: Execute the eigengap heuristic
 * Return: k - number of clusters
 */
-int eigengapHeuristic(EIGEN *eigenArray, int lenArray) {
-
+int eigengapHeuristic(EIGEN *eigenArray, int arrLength) {
     double max;
     double cur;
     int max_index;
     int i;
     max_index = 0;
     max = eigenArray[1].eigenValue - eigenArray[0].eigenValue;
-    for (i = 1; i < lenArray / 2; i++) {
+    for (i = 1; i < arrLength / 2; i++) {
         cur = eigenArray[i + 1].eigenValue - eigenArray[i].eigenValue;
         if (cur > max) {
             max_index = i;
@@ -163,16 +146,15 @@ void normalizeMatrix(double **matrix, int rows, int columns) {
 * Action: Calaulate sum of (u_ij)^2 for each row for normalize algo
 * Return: Array with calculated sum of each row
 */
-double *
-calculateRootOfSumOfSquaresRows(double **matrix, int rows, int columns) {
-
+double* calculateRootOfSumOfSquaresRows(double **matrix, int rows, 
+                                        int columns) {
     double *arraySumOfSquaresColumns;
     double sum;
     int j;
     int i;
     sum = 0;
     arraySumOfSquaresColumns = (double *) calloc(rows, sizeof(double));
-    ourAssert(arraySumOfSquaresColumns != NULL);
+    validateAction(arraySumOfSquaresColumns != NULL);
     for (i = 0; i < rows; i++) {
         for (j = 0; j < columns; j++) {
             sum += pow(matrix[i][j], 2);
@@ -190,12 +172,12 @@ calculateRootOfSumOfSquaresRows(double **matrix, int rows, int columns) {
 * Action: Sorts EIGEN array in descending order
 * Return: None
 */
-void descendingSort(EIGEN* eigenArray, int lenArray) {
+void descendingSort(EIGEN* eigenArray, int arrLength) {
     int i, j;
     double tmpEigenVal, *tmpEigenVector;
  
-    for (i = 0; i < lenArray; ++i) {
-        for (j = i + 1; j < lenArray; ++j) {
+    for (i = 0; i < arrLength; ++i) {
+        for (j = i + 1; j < arrLength; ++j) {
             if (eigenArray[i].eigenValue < eigenArray[j].eigenValue) {
                 tmpEigenVal = eigenArray[i].eigenValue;
                 eigenArray[i].eigenValue = eigenArray[j].eigenValue;
@@ -207,100 +189,4 @@ void descendingSort(EIGEN* eigenArray, int lenArray) {
             }
         }
     }
-}
-
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: EIGEN array, EIGEN array length
-* Action: Performs merge sort algorithm
-* Return: None
-*/
-void mergeSort(EIGEN eigenArray[], int lenArray) {
-
-    int currSize; /* cur size of the subarrays that we merge */
-    int leftStart;
-    for (currSize = 1; currSize <= lenArray - 1; currSize = 2 * currSize) {
-        for (leftStart = 0;
-             leftStart < lenArray - 1; leftStart += 2 * currSize) {
-            int leftEnd = min(leftStart + currSize - 1, lenArray - 1);
-            int rightEnd = min(leftStart + 2 * currSize - 1, lenArray - 1);
-            merge(eigenArray, leftStart, leftEnd, rightEnd);
-        }
-    }
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: EIGEN array, pointers to indexes in arrays
-* Action: Merges 2 arrays sorted arrays (merge sort)
-* Return: None
-*/
-void merge(EIGEN eigenArray[], int leftStart, int leftEnd, int rightEnd) {
-
-    int i, j, k;
-    EIGEN *leftArray, *rightArray;
-    int lenLeftArray = leftEnd - leftStart + 1;
-    int lenRightArray = rightEnd - leftEnd; /* rightStart = leftEnd + 1 */
-
-    leftArray = (EIGEN *) calloc(lenLeftArray, sizeof(EIGEN));
-    ourAssert(leftArray != NULL);
-    rightArray = (EIGEN *) calloc(lenRightArray, sizeof(EIGEN));
-    ourAssert(rightArray != NULL);
-
-    /* copy values to temp leftArray and rightArray */
-    for (i = 0; i < lenLeftArray; i++)
-        leftArray[i] = eigenArray[leftStart + i];
-    for (j = 0; j < lenRightArray; j++)
-        rightArray[j] = eigenArray[leftEnd + 1 + j];
-
-    i = 0;
-    j = 0;
-    k = leftStart;
-    /* merge the two subarrays */
-    while (i < lenLeftArray && j < lenRightArray) {
-        if (compareEIGEN(leftArray[i], rightArray[j]) <= 0) {
-            eigenArray[k] = leftArray[i];
-            i++;
-        } else {
-            eigenArray[k] = rightArray[j];
-            j++;
-        }
-        k++;
-    }
-
-    /* copy the reminded values */
-    while (i < lenLeftArray) {
-        eigenArray[k] = leftArray[i];
-        i++;
-        k++;
-    }
-    while (j < lenRightArray) {
-        eigenArray[k] = rightArray[j];
-        j++;
-        k++;
-    }
-    free(leftArray);
-    free(rightArray);
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: 2 EIGENs
-* Action: Compares 2 EIGENs
-* Return: if EIGENs1 == EIGENs2 -> 0
-*         if EIGENs1 > EIGENs2 -> 1
-*         if EIGENs1 <>> EIGENs2 -> -1
-*/
-int compareEIGEN(EIGEN e1, EIGEN e2) {
-
-    if (e1.eigenValue > e2.eigenValue) {
-        return 1;
-    } else if (e1.eigenValue < e2.eigenValue) {
-        return -1;
-    }
-    return 0;
 }

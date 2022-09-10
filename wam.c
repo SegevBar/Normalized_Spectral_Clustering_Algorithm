@@ -8,19 +8,18 @@
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Input file
+* Params: Points matrix, Vector count, Vector dimension
 * Action: Calculate and output the Weighted Adjacency Matrix
 * Return: Prints Weighted Adjacency Matrix 
 */
-void wam(char* filename) {
-    int numOfVectors, numOfFeatures;
-    double **dataPoints, **weightedAdjacencyMatrix;
-    
-    dataPoints = getDataPoints(&numOfVectors, &numOfFeatures, filename);
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix(dataPoints,         
-                              numOfVectors, numOfFeatures);
-    freeMatrix(dataPoints);
-    printSymmetricMatrix(weightedAdjacencyMatrix, numOfVectors);
+void wam(double** vectorsMatrix, int N, int vectorDim) {
+    double **weightedAdjacencyMatrix;
+
+    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
+                                    (vectorsMatrix, N, vectorDim);
+    freeMatrix(vectorsMatrix, N);
+    printMatrix(weightedAdjacencyMatrix, N, N);
+    freeMatrix(weightedAdjacencyMatrix, N);
 }
 
 /*
@@ -30,17 +29,19 @@ void wam(char* filename) {
 * Action: Create Weighted Adjacency Matrix
 * Return: Weighted Adjacency Matrix
 */
-double **createWeightedAdjacencyMatrix(double **dataPoints, int numOfVectors,
-                                       int numOfFeatures) {
-
+double **createWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
+                                       int vectorDim) {
     double **weightedAdjacencyMatrix;
     int i, j;
-    weightedAdjacencyMatrix = createSymmetricMatrix(numOfVectors);
-    for (i = 0; i < numOfVectors; i++) {
-        for (j = 0; j < i; j++) {
-            weightedAdjacencyMatrix[i][j] = exp(
-                    -sqrt(euclideanNorm(dataPoints[i], dataPoints[j],
-                                        numOfFeatures)) / 2);
+    double wij;
+    
+    weightedAdjacencyMatrix = createSquareMatrix(N);
+    for(i = 0; i < N; i++){
+        for(j = 0; j < i; j++){
+            wij = exp(-sqrt
+            (euclideanNorm(vectorsMatrix[i], vectorsMatrix[j],vectorDim)) / 2);
+            weightedAdjacencyMatrix[i][j] = wij;
+            weightedAdjacencyMatrix[j][i] = wij;
         }
     }
     return weightedAdjacencyMatrix;

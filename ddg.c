@@ -8,24 +8,22 @@
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Input file
+* Params: Points matrix, Vector count, Vector dimension
 * Action: Calculate and output the Diagonal Degree Matrix
 * Return: Prints Diagonal Degree Matrix
 */
-void ddg(char* filename) {
-    int numOfVectors, numOfFeatures;
-    double **dataPoints, **weightedAdjacencyMatrix, **diagonalDegreeMatrix;
+void ddg(double** vectorsMatrix, int N, int vectorDim) {
+    double **weightedAdjacencyMatrix, **diagonalDegreeMatrix;
 
-    dataPoints = getDataPoints(&numOfVectors, &numOfFeatures, filename);
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix(dataPoints,         
-                              numOfVectors, numOfFeatures);
-    freeMatrix(dataPoints);              
+    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
+                                            (vectorsMatrix, N, vectorDim);
+    freeMatrix(vectorsMatrix, N);              
     diagonalDegreeMatrix = createDDGMatrixforDDG(weightedAdjacencyMatrix,   
-                           numOfVectors);
-    printMatrix(diagonalDegreeMatrix, numOfVectors, numOfVectors);
+                           N);
+    printMatrix(diagonalDegreeMatrix, N, vectorDim);
     
-    freeMatrix(weightedAdjacencyMatrix);
-    freeMatrix(diagonalDegreeMatrix);
+    freeMatrix(weightedAdjacencyMatrix, N);
+    freeMatrix(diagonalDegreeMatrix, N);
 }
 
 /*
@@ -35,16 +33,16 @@ void ddg(char* filename) {
 * Action: Creates Diagonal Degree Matrix
 * Return: Diagonal Degree Matrix
 */
-double **
-createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors) {
+double** createDDGMatrixforDDG(double **weightedAdjacencyMatrix, 
+                               int N) {
     double *DiagonalDegreeArray;
     double **DiagonalDegreeMatrix;
     int i;
 
     DiagonalDegreeArray = calculateDiagonalDegreeMatrix
-                                    (weightedAdjacencyMatrix, numOfVectors);
-    DiagonalDegreeMatrix = createRegularSquareMatrix(numOfVectors);
-    for (i = 0; i < numOfVectors; i++) {
+                                    (weightedAdjacencyMatrix, N);
+    DiagonalDegreeMatrix = createRegularSquareMatrix(N);
+    for (i = 0; i < N; i++) {
         DiagonalDegreeMatrix[i][i] = DiagonalDegreeArray[i];
     }
     free(DiagonalDegreeArray);
@@ -59,15 +57,15 @@ createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors) {
 * Return: Array of values in diagonal
 */
 double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
-                                      int numOfVectors) {
+                                      int N) {
 
     double *diagonalDegreeArray, sum;
     int i, j;
-    diagonalDegreeArray = (double *) calloc(numOfVectors, sizeof(double));
-    ourAssert(diagonalDegreeArray != NULL);
-    for (i = 0; i < numOfVectors; i++) {
+    diagonalDegreeArray = (double *) calloc(N, sizeof(double));
+    validateAction(diagonalDegreeArray != NULL);
+    for (i = 0; i < N; i++) {
         sum = 0;
-        for (j = 0; j < numOfVectors; j++) {
+        for (j = 0; j < N; j++) {
             if (j <= i) {
                 sum += weightedAdjacencyMatrix[i][j];
             } else {

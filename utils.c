@@ -12,87 +12,98 @@
 * Action: Reads points from inpuf file and save in metrix
 * Return: Points matrix
 */
-double **
-getDataPoints(int *p_numOfVectors, int *p_numOfFeatures, char *filename) {
-    
-    int lineCounter, j;
-    double *dataPointsArray, **dataPoints;
-    char line[MAX_CHARS_LINE];
-    char *left;
-    FILE *f;
+double** getVectorsMatrix(char *filename, int N, int dim) {
+    int i, j;
+    double** vectorsMatrix;
+    FILE *ifp;
+    char ch;
+    double value;
 
-    f = fopen(filename, "r");
-    ourAssert(f != NULL);
+    ifp = fopen(filename, "r");
+    validateAction(ifp != NULL);
 
-    fscanf(f, "%s", line);
-    *p_numOfFeatures = featuresCount(line);
-    dataPoints = (double **) calloc(MAX_LINES, sizeof(double *));
-    ourAssert(dataPoints != NULL);
-
-    dataPointsArray = (double *) calloc(MAX_LINES * (*p_numOfFeatures),
-                                        sizeof(double));
-    ourAssert(dataPointsArray != NULL);
-    
-    lineCounter = 0;
-    do {
-        dataPoints[lineCounter] =
-                dataPointsArray + lineCounter * (*p_numOfFeatures);
-        left = line;
-        for (j = 0; j < *p_numOfFeatures; j++) {
-            dataPoints[lineCounter][j] = strtod(left, &left);
-            left++;
+    /* allocate memory of vector matrix */ 
+    vectorsMatrix = (double**) calloc(N, sizeof(*vectorsMatrix));
+    validateAction(vectorsMatrix != NULL);
+    for(i = 0; i < N; i++){
+        vectorsMatrix[i] = (double*) calloc(dim ,sizeof(*vectorsMatrix[i]));
+        validateAction(vectorsMatrix[i] != NULL);
+    }
+    /* fill matrix with data from file */
+    for(i = 0; i < N; i++){
+        for(j = 0; j < dim; j++){
+            fscanf(ifp, "%lf%c", &value, &ch);
+            vectorsMatrix[i][j] = value;
         }
-        lineCounter++;
-    } while (fscanf(f, "%s", line) != EOF);
-    *p_numOfVectors = lineCounter;
+    }
+    fclose(ifp);
 
-    fclose(f);
-    return dataPoints;
+    return vectorsMatrix;
 }
 
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Input file, pointers to points amount
+* Params: Input file
 * Action: Counts number of points in file
 * Return: Points count
 */
 int getVectorCount(char *filename) {
+    int N = 0;
+    int c;
+    FILE *ifp;
 
-    int lineCounter;
-    char line[MAX_CHARS_LINE];
-    FILE *f;
+    ifp = fopen(filename, "r");
+    validateAction(ifp != NULL);
 
-    f = fopen(filename, "r");
-    ourAssert(f != NULL);
-    fscanf(f, "%s", line);
-
-    lineCounter = 0;
-    do {
-        lineCounter++;
-    } while (fscanf(f, "%s", line) != EOF);
-    
-    fclose(f);
-    
-    return lineCounter;
+    /*find N*/
+    while ((c = fgetc(ifp)) != EOF) {  /*run until end of file*/
+        
+        if(c == 10) { /*if (c == "\n") increment N*/
+            N++;
+        }
+    }
+    fclose(ifp);
+    return N;
 }
 
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: a Point
+* Params: Input file
 * Action: Counts features in point
-* Return: Point size
+* Return: Point dimension
 */
-int featuresCount(const char *line) {
-    int i;
-    int count = 1;
-    for (i = 0; line[i] != '\0'; i++) {
-        if (line[i] == ',') {
-            count++;
+int getVectorDim(char *filename) {
+    int vectorDim = 1;
+    int c;
+    FILE *ifp;
+
+    ifp = fopen(filename, "r");
+    validateAction(ifp != NULL);
+
+    /*find vector dimensions*/
+    while ((c = fgetc(ifp)) != 10) {  /*run until end of line*/
+        if (c == 44) {  /*if c == "," increment dimension*/
+            vectorDim++; 
         }
     }
-    return count;
+    fclose(ifp);
+    return vectorDim;
+}
+
+double** createSquareMatrix(int n) {
+    int i;
+    double** matrix;
+
+    /* allocate memory of matrix */ 
+    matrix = (double**) calloc(n, sizeof(*matrix));
+    validateAction(matrix != NULL);
+    for(i = 0; i < n; i++){
+        matrix[i] = (double*) calloc(n ,sizeof(*matrix[i]));
+        validateAction(matrix[i] != NULL);
+    }
+    return matrix;
 }
 
 /*
@@ -113,10 +124,10 @@ double **createSymmetricMatrix(int n) {
      * values are in the diagonal or the bottom triangle */
     int lenSymMatrix = (int) ((d_n * d_n) / 2 + d_n / 2);
     array = (double *) calloc(lenSymMatrix, sizeof(double));
-    ourAssert(array != NULL);
+    validateAction(array != NULL);
 
     symMatrix = (double **) calloc(n, sizeof(double *));
-    ourAssert(symMatrix != NULL);
+    validateAction(symMatrix != NULL);
 
     cur = array;
     for (i = 0; i < n; i++) {
@@ -152,9 +163,9 @@ double **createRegularMatrix(int rows, int columns) {
     double **matrix;
 
     array = (double *) calloc(rows * columns, sizeof(double));
-    ourAssert(array != NULL);
+    validateAction(array != NULL);
     matrix = (double **) calloc(rows, sizeof(double *));
-    ourAssert(matrix != NULL);
+    validateAction(matrix != NULL);
 
     for (i = 0; i < rows; i++) {
         matrix[i] = array + i * columns;
@@ -285,16 +296,18 @@ void printDiagonal(double **matrix, int lenMatrix) {
 * Action: Frees matrix memory
 * Return: None
 */
-void freeMatrix(double **matrix) {
-
-    free(matrix[0]);
+void freeMatrix(double **matrix, int n) {
+    int i;
+    for(i = 0; i < n; i++){
+        free(matrix[i]);
+    }
     free(matrix);
 }
 
 /*
 * Funcion TO DELETE
 */
-void ourAssert(int trueOrFalse) {
+void validateAction(int trueOrFalse) {
 
     if (trueOrFalse == 0) {
         printf("An Error Has Occured");

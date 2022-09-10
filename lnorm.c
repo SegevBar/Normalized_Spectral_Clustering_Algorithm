@@ -8,28 +8,26 @@
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Input file
+* Params: Points matrix, Vector count, Vector dimension
 * Action: Calculate and output the Normalized Graph Laplacian
 * Return: Prints Normalized Graph Laplacian
 */
-void lnorm(char* filename) {
-    int numOfVectors, numOfFeatures;
-    double **dataPoints, **weightedAdjacencyMatrix, *diagonalDegreeArray;
+void lnorm(double** vectorsMatrix, int N, int vectorDim) {
+    double **weightedAdjacencyMatrix, *diagonalDegreeArray;
     double **lnorm;
 
-    dataPoints = getDataPoints(&numOfVectors, &numOfFeatures, filename);
-    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix(dataPoints,         
-                              numOfVectors, numOfFeatures);
-    freeMatrix(dataPoints);              
-    diagonalDegreeArray = calculateDiagonalDegreeMatrix(
-                                    weightedAdjacencyMatrix, numOfVectors);
+    weightedAdjacencyMatrix = createWeightedAdjacencyMatrix
+                                            (vectorsMatrix, N, vectorDim);
+    freeMatrix(vectorsMatrix, N);              
+    diagonalDegreeArray = calculateDiagonalDegreeMatrix
+                                            (weightedAdjacencyMatrix, N);
     lnorm = createLnorm(diagonalDegreeArray, 
-                                    weightedAdjacencyMatrix, numOfVectors);
-    printSymmetricMatrix(lnorm, numOfVectors);
+                                    weightedAdjacencyMatrix, N);
+    printSymmetricMatrix(lnorm, N);
 
-    freeMatrix(weightedAdjacencyMatrix);
+    freeMatrix(weightedAdjacencyMatrix, N);
     free(diagonalDegreeArray);
-    freeMatrix(lnorm);
+    freeMatrix(lnorm, N);
 }
 
 /*
@@ -40,19 +38,18 @@ void lnorm(char* filename) {
 * Action: Creates Lnorm
 * Return: Lnorm
 */
-double **
-createLnorm(double *diagonalDegreeArray, double **weightedAdjacencyMatrix, 
-            int numOfVectors) {
+double** createLnorm(double *diagonalDegreeArray, 
+                     double **weightedAdjacencyMatrix, int N) {
     double **lnormMatrix;
     int i, j;
 
     /* Sets values x in diagonal to (x)^(-1/2) */
-    for (i = 0; i < numOfVectors; i++) {
+    for (i = 0; i < N; i++) {
         diagonalDegreeArray[i] = 1 / sqrt(diagonalDegreeArray[i]);
     }
 
-    lnormMatrix = createSymmetricMatrix(numOfVectors);
-    for (i = 0; i < numOfVectors; i++) {
+    lnormMatrix = createSymmetricMatrix(N);
+    for (i = 0; i < N; i++) {
         for (j = 0; j <= i; j++) {
             if (i != j) {
                 lnormMatrix[i][j] = -diagonalDegreeArray[i] *

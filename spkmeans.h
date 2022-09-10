@@ -6,12 +6,10 @@
 #define EPSLION 0.000000000000001
 #define MAX_CHARS_LINE 111 /* at most 10 features '-XXXX.XXXX,' +\0  */
 #define MAX_CHARS_LINE_MATRIX 551 /* at most 50 features '-XXXX.XXXX,' +\0  */
-#define MAX_LINES 50
+#define MAX_LINES 1000
 #define round(x)((((x)>-0.00005)&&((x)<=0))?(0):(x))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
 
-/* ------------------------spk - step 6, Kmeans ----------------------------- */
-
+/* Structs */ 
 struct cluster {
     double *centroid;
     double *centroid_closest;
@@ -26,127 +24,78 @@ struct eigen {
 };
 typedef struct eigen EIGEN;
 
-void spk(int k, char* filename);
+/* spkmeans.c */
+void runGoal(int k, char *goal, char *filename);
 
-void wam(char* filename);
-
-void ddg(char* filename);
-
-void lnorm(char* filename);
-
-void jacobi(char* filename);
-
-void descendingSort(EIGEN* eigenArray, int lenArray);
-
-void initCluster(CLUSTER *curCluster, double *dataPoint, int numOfFeatures);
-
-CLUSTER *initializeClusters(double **dataPoints, int K);
-
-void
-updateClosest(CLUSTER *curCluster, const double *datapoint, int numOfFeatures);
-
-void updateCentroid(CLUSTER *curCluster, int numOfFeatures);
-
-double euclideanNorm(const double *datapoint1, const double *datapoint2,
-                     int numOfFeatures);
-
-void kmeansmain(CLUSTER *clusters, double **dataPoints, int numOfFeatures,
-                int numOfVectors);
-
-void printCentroids(CLUSTER *clusters, int numOfFeatures);
-
-void freeClusters(CLUSTER *clusters, int K);
-
-/* --------------------------- spk - steps 1+2 ------------------------------ */
-
-double **createWeightedAdjacencyMatrix(double **dataPoints, int numOfVectors,
-                                       int numOfFeaturs);
-
-double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
-                                      int numOfVectors);
-
-double **createDDGMatrixforDDG(double **weightedAdjacencyMatrix, int numOfVectors);
-
-/*void computePowOfMinusHalf(double *diagonalDegreeMatrix, int numOfVectors);*/
-
-double **
-createLnorm(double *diagonalDegreeArray, double **weightedAdjacencyMatrix, 
-            int numOfVectors);
-
-/* ----------------------- spk - steps 3-5, Jacobi -------------------------- */
-
-
-double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *p_k,
-                                                  int lenMatrix);
-
-double **jacobiAlgorithm(double **matrix, int lenMatrix);
-
-void updateEigenvectors(double **matrix, int lenMatrix, int i, int j, double s,
-                        double c);
-
-void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c);
-
-void transformMatrix(double **matrix, int lenMatrix, int i, int j, double s,
-                     double c);
-
-void calculateMax(double **matrix, int lenMatrix, int *p_i, int *p_j);
-
-double off(double **matrix, int lenMatrix);
-
-int checkIfDiagonalMatrix(double **matrix, int lenMatrix);
-
-EIGEN *createArrayOfEigens(double **vectorsMatrix, double **valuesMatrix,
-                           int lenMatrix);
-
-int eigengapHeuristic(EIGEN *eigenArray, int lenArray);
-
-void normalizeMatrix(double **matrix, int rows, int columns);
-
-double *
-calculateRootOfSumOfSquaresRows(double **matrix, int rows, int columns);
-
-/* --------------------------------- utils ---------------------------------- */
+/* Utils.c */
+double** getVectorsMatrix(char *filename, int N, int dim);
+int getVectorCount(char *filename);
+int getVectorDim(char *filename);
+double** createSquareMatrix(int n);
 
 double **createSymmetricMatrix(int n);
-
 double **createRegularSquareMatrix(int n);
-
 double **createRegularMatrix(int rows, int columns);
-
 double **identityMatrix(int n);
-
 void printSymmetricMatrix(double **matrix, int lenMatrix);
-
 void printMatrix(double **matrix, int rows, int columns);
-
 void printTransposedMatrix(double **matrix, int rows, int columns);
-
 void printDiagonal(double **matrix, int lenMatrix);
+void freeMatrix(double **matrix, int n);
+void validateAction(int trueOrFalse);
 
-void freeMatrix(double **matrix);
+/* spk.c */
+double** spk(int k, double** vectorsMatrix, int N, int vectorDim);
+double **calculateMatrixWithEigenvectorsAsColumns(double **matrix, int *kp,
+                                                  int lenMatrix);
+EIGEN *createArrayOfEigens(double **vectorsMatrix, double **valuesMatrix,
+                           int lenMatrix);
+int eigengapHeuristic(EIGEN *eigenArray, int arrLength);
+void normalizeMatrix(double **matrix, int rows, int columns);
+double* calculateRootOfSumOfSquaresRows(double **matrix, int rows, 
+                                        int columns);
+void descendingSort(EIGEN* eigenArray, int arrLength);
 
-void mergeSort(EIGEN eigenArray[], int lenArray);
 
-void merge(EIGEN eigenArray[], int leftStart, int leftEnd, int rightEnd);
+/* wam.c */
+void wam(double** vectorsMatrix, int N, int vectorDim);
+double **createWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
+                                       int vectorDim);
 
-int compareEIGEN(EIGEN e1, EIGEN e2);
+/* ddg.c */
+void ddg(double** vectorsMatrix, int N, int vectorDim);
+double** createDDGMatrixforDDG(double **weightedAdjacencyMatrix, 
+                               int N);
+double *calculateDiagonalDegreeMatrix(double **weightedAdjacencyMatrix,
+                                      int N);
 
-void ourAssert(int trueOrFalse);
+/* lnorm.c */
+void lnorm(double** vectorsMatrix, int N, int vectorDim);
+double** createLnorm(double *diagonalDegreeArray, 
+                     double **weightedAdjacencyMatrix, int N);
 
-/* ------------------------------ input data -------------------------------- */
+/* jacobi */
+void jacobi(double** vectorsMatrix, int N, int vectorDim);
+double **jacobiAlgorithm(double **matrix, int lenMatrix);
+int checkIfDiagonalMatrix(double **matrix, int lenMatrix);
+void calculateMax(double **matrix, int lenMatrix, int *p_i, int *p_j);
+void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c);
+void transformMatrix(double **matrix, int lenMatrix, int i, int j, double s,
+                     double c);
+void updateEigenvectors(double **matrix, int lenMatrix, int i, int j, double s,
+                        double c);
+double off(double **matrix, int lenMatrix);
 
-double **getDataPoints(int *numOfVectors, int *numOfFeatures, char *filename);
-
-int getVectorCount(char *filename);
-
-double **readSymatricMatrixFromFile(char *filename, int *p_lenMatrix);
-
-int featuresCount(const char *line);
-
-/* --------------------------------- main ----------------------------------- */
-
-double **normalizedSpectralClustering(int k, char *filename, int runKMeans);
-
-void goalFunc(int k, char *goal, char *filename);
+/* kmeans */
+void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
+                int N);
+CLUSTER *initializeClusters(double **vectorsMatrix, int K);
+void initCluster(CLUSTER *curCluster, double *dataPoint, int vectorDim);
+void updateClosest(CLUSTER *curCluster, const double *datapoint, int vectorDim);
+void updateCentroid(CLUSTER *curCluster, int vectorDim);
+double euclideanNorm(const double *datapoint1, const double *datapoint2,
+                     int vectorDim);
+void printCentroids(CLUSTER *clusters, int vectorDim);
+void freeClusters(CLUSTER *clusters, int K);
 
 #endif

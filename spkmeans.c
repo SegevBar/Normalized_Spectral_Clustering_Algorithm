@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     if (argc == 3) {
         goal = argv[1];
         filename = argv[2];
-        goalFunc(0, goal, filename);
+        runGoal(0, goal, filename);
     }
     return 0;
 }
@@ -33,24 +33,31 @@ int main(int argc, char *argv[]) {
 * Action: runs program according to CMD input. prints output according goal
 * Return: None
 */
-void goalFunc(int k, char* goal, char* filename) {
+void runGoal(int k, char* goal, char* filename) {
+    int N, vectorDim;
+    double **vectorsMatrix;
+
+    vectorDim = getVectorDim(filename);
+    N = getVectorCount(filename);
+    vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
+
     if (strcmp(goal, "spk") == 0) {
-        spk(k, filename);
+        spk(k, vectorsMatrix, N, vectorDim);
     }
-    if (strcmp(goal, "wam") == 0) {
-        wam(filename);
+    else if (strcmp(goal, "wam") == 0) {
+        wam(vectorsMatrix, N, vectorDim);
     }
-    if (strcmp(goal, "ddg") == 0) {
-        ddg(filename);
+    else if (strcmp(goal, "ddg") == 0) {
+        ddg(vectorsMatrix, N, vectorDim);
     }
-    if (strcmp(goal, "lnorm") == 0) {
-        lnorm(filename);
+    else if (strcmp(goal, "lnorm") == 0) {
+        lnorm(vectorsMatrix, N, vectorDim);
     }
-    if (strcmp(goal, "jacobi") == 0) {
-        jacobi(filename);
+    else if (strcmp(goal, "jacobi") == 0) {
+        jacobi(vectorsMatrix, N, vectorDim);
     }
-    /*else {
+    else {
         printf("Invalid Input!");
         abort();
-    }*/
+    }
 }
