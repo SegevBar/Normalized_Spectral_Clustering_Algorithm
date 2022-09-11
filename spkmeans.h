@@ -1,12 +1,8 @@
 #ifndef KMEANS_H_
 #define KMEANS_H_
-
-#define MAX_ITER_KMEANS 300
 #define MAX_ITER_JACOBI 100
-#define EPSLION 0.000000000000001
-#define MAX_CHARS_LINE 111 /* at most 10 features '-XXXX.XXXX,' +\0  */
-#define MAX_CHARS_LINE_MATRIX 551 /* at most 50 features '-XXXX.XXXX,' +\0  */
-#define MAX_LINES 1000
+#define MAX_ITER_KMEANS 300
+#define EPSLION 0.00001
 #define round(x)((((x)>-0.00005)&&((x)<=0))?(0):(x))
 
 /* Structs */ 
@@ -73,16 +69,15 @@ void lnorm(double** vectorsMatrix, int N, int vectorDim);
 double** getLnorm(double *ddgDiagonal, double **wam, int N);
 
 /* jacobi */
-void jacobi(double** vectorsMatrix, int N, int vectorDim);
-double **jacobiAlgorithm(double **matrix, int n);
-int checkIfDiagonalMatrix(double **matrix, int n);
-void calculateMax(double **matrix, int n, int *p_i, int *p_j);
-void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c);
-void transformMatrix(double **matrix, int n, int i, int j, double s,
-                     double c);
-void updateEigenvectors(double **matrix, int n, int i, int j, double s,
-                        double c);
-double off(double **matrix, int n);
+void jacobi(double** matrix, int N, int vectorDim);
+double **jacobiAlgorithm(double **A, int n);
+double off(double **A, int n);
+int matrixIsDiagonal(double **A, int n);
+void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj);
+void getCSOfP(double **A, int i, int j, double *cp, double *sp);
+void transformA(double **A, int n, int i, int j, double s, double c);
+void getCurrentEigenvectors(double **V, int n, int i, int j, double s,
+                           double c);
 
 /* kmeans */
 void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
@@ -96,14 +91,6 @@ double euclideanNorm(const double *datapoint1, const double *datapoint2,
 void printCentroids(CLUSTER *clusters, int vectorDim);
 void freeClusters(CLUSTER *clusters, int K);
 
-/* spkmeansmodule.c */
-static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args);
-static PyObject *nkMatrixToPython(double **nkMatrix, int N, int k);
-static PyObject *goalsOtherThenSpk(PyObject *self, PyObject *args);
-static PyObject *kmeans(PyObject *self, PyObject *args);
-static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N, 
-                                    int vectorDim);
-static CLUSTER *pythonInitializeClusters(PyObject *pythonClusters, int N);
-static void pythonInitCluster(CLUSTER *curCluster, int vectorDim);
+
 
 #endif

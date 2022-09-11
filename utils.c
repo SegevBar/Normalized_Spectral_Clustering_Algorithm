@@ -5,6 +5,58 @@
 #include <math.h>
 #include "spkmeans.h"
 
+
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: Input file
+* Action: Counts features in point
+* Return: Point dimension
+*/
+int getVectorDim(char *filename) {
+    int vectorDim = 1;
+    int c;
+    FILE *ifp;
+
+    ifp = fopen(filename, "r");
+    validateAction(ifp != NULL);
+
+    /*find vector dimensions*/
+    while ((c = fgetc(ifp)) != 10) {  /*run until end of line*/
+        if (c == 44) {  /*if c == "," increment dimension*/
+            vectorDim++; 
+        }
+    }
+    fclose(ifp);
+    return vectorDim;
+} 
+
+/*
+* Funcion: 
+* -----------------------------------------------------------------------------
+* Params: Input file
+* Action: Counts number of vectors in file
+* Return: vectors count
+*/
+int getVectorCount(char *filename) {
+    int N = 0;
+    int c;
+    FILE *ifp;
+
+    ifp = fopen(filename, "r");
+    validateAction(ifp != NULL);
+
+    /*find N*/
+    while ((c = fgetc(ifp)) != EOF) {  /*run until end of file*/
+        
+        if(c == 10) { /*if (c == "\n") increment N*/
+            N++;
+        }
+    }
+    fclose(ifp);
+    return N;
+}
+
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
@@ -39,57 +91,6 @@ double** getVectorsMatrix(char *filename, int N, int dim) {
     fclose(ifp);
 
     return vectorsMatrix;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Input file
-* Action: Counts number of vectors in file
-* Return: vectors count
-*/
-int getVectorCount(char *filename) {
-    int N = 0;
-    int c;
-    FILE *ifp;
-
-    ifp = fopen(filename, "r");
-    validateAction(ifp != NULL);
-
-    /*find N*/
-    while ((c = fgetc(ifp)) != EOF) {  /*run until end of file*/
-        
-        if(c == 10) { /*if (c == "\n") increment N*/
-            N++;
-        }
-    }
-    fclose(ifp);
-    return N;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Input file
-* Action: Counts features in point
-* Return: Point dimension
-*/
-int getVectorDim(char *filename) {
-    int vectorDim = 1;
-    int c;
-    FILE *ifp;
-
-    ifp = fopen(filename, "r");
-    validateAction(ifp != NULL);
-
-    /*find vector dimensions*/
-    while ((c = fgetc(ifp)) != 10) {  /*run until end of line*/
-        if (c == 44) {  /*if c == "," increment dimension*/
-            vectorDim++; 
-        }
-    }
-    fclose(ifp);
-    return vectorDim;
 }
 
 double** createSquareMatrix(int n) {

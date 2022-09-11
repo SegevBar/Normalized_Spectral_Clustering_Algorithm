@@ -26,57 +26,54 @@ void jacobi(double** matrix, int N, int vectorDim) {
 }
 
 /*
-* Funcion: 
+* Funcion: double **jacobiAlgorithm(double **A, int n)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D)
+* Params: A matrix and it's dimension (1D)
 * Action: Execute jacobi algorithm
 * Return: Eigenvectors matrix
 */
-double **jacobiAlgorithm(double **matrix, int n) {
-    int i;
-    int j;
-    int q;
-    double c;
-    double s;
-    double offA;
-    double offB;
-    double **eigenvectorsMatrix;
+double **jacobiAlgorithm(double **A, int n) {
+    int i, j, k;
+    double c, s, offA, offAt;
+    double **V; /* Eigenvectors matrix */
     
-    offA = off(matrix, n);
-    eigenvectorsMatrix = createIdentityMatrix(n);
+    offA = off(A, n);
+    V = createIdentityMatrix(n);
 
-    for (q = 0; q < MAX_ITER_JACOBI; q++) {
-        if (matrixIsDiagonal(matrix, n)) {
+    for (k = 0; k < MAX_ITER_JACOBI; k++) {
+        if (matrixIsDiagonal(A, n)) {  /*break loop if A is diagonal*/
             break;
         }
-        calculateMax(matrix, n, &i, &j);
-        rotateMatrix(matrix, i, j, &s, &c);
-        transformMatrix(matrix, n, i, j, s, c);
-        updateEigenvectors(eigenvectorsMatrix, n, i, j, s, c);
-        offB = off(matrix, n);
-        if (offA - offB <= EPSLION) {
+        getIJOfLargestOffDiag(A, n, &i, &j); /*updates i j via pointers*/
+        getCSOfP(A, i, j, &c, &s); /*updates s c via pointers*/
+        transformA(A, n, i, j, s, c); 
+        getCurrentEigenvectors(V, n, i, j, s, c);
+        
+        /* check convergence */
+        offAt = off(A, n);
+        if (offA - offAt <= EPSLION) {
             break;
         }
-        offA = offB;
+        offA = offAt;
     }
-    return eigenvectorsMatrix;
+    return V;
 }
 
 /*
-* Funcion: double off(double **matrix, int n)
+* Funcion: double off(double **A, int n)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D)
+* Params: A matrix and it's dimension (1D)
 * Action: Executes off function
 * Return: off funtion result
 */
-double off(double **matrix, int n) {
+double off(double **A, int n) {
     int i, j;
     double sum = 0;
 
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
             if (i != j) {
-                sum += pow(matrix[i][j], 2);
+                sum += pow(A[i][j], 2);
             }
         }
     }
@@ -84,143 +81,126 @@ double off(double **matrix, int n) {
 }
 
 /*
-* Funcion: 
+* Funcion: int matrixIsDiagonal(double **A, int n)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D)
+* Params: A matrix and it's dimension (1D)
 * Action: Checks if the matrix is a diagonal matrix
 * Return: diagonal matrix ? 1 : 0
 */
-int matrixIsDiagonal(double **matrix, int n) {
-    int i;
-    int j;
+int matrixIsDiagonal(double **A, int n) {
+    int i, j;
+
     for (i = 0; i < n; i++) {
-        for (j = 0; j < i; j++) {
-            if (i != j && matrix[i][j] != 0) {
-                return 0; /* False */
+        for (j = 0; j < n; j++) {
+            if (i != j && A[i][j] != 0.0) {
+                return 0; 
             }
         }
     }
-    return 1; /* True */
+    return 1; 
 }
 
 /*
-* Funcion: 
+* Funcion: void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D), 
-*         pointers to the indexes ij of maximum off-diagonal value
+* Params: A matrix and it's dimension (1D), pointers to indexes ij of maximum
+*         off-diagonal value
 * Action: Finds maximum absolut off-diagonal value and update ij
 * Return: None
 */
-void calculateMax(double **matrix, int n, int *p_i, int *p_j) {
-    int t;
-    int q;
-    double max;
-    *p_i = 1;
-    *p_j = 0;
-    max = fabs(matrix[1][0]);
-    for (t = 0; t < n; t++) {
-        for (q = 0; q < t; q++) {
-            if (fabs(matrix[t][q]) > max) {
-                max = fabs(matrix[t][q]);
-                *p_i = t;
-                *p_j = q;
+void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj) {
+    int i, j;
+    double currMax = 0.0;
+
+    for (i = 0; i < n; i++) {
+        for (j = i; j < n; j++) {
+            if (i != j && fabs(A[i][j]) > currMax) {
+                currMax = fabs(A[i][j]);
+                *pi = i;
+                *pj = j;
             }
         }
     }
 }
 
 /*
-* Funcion: 
+* Funcion: void getCSOfP(double **A, int i, int j, double *cp, double *sp)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix, indexes of max off-diagonal value, 
+* Params: A matrix, indexes of max off-diagonal value, 
 *         pointers to s and c
 * Action: calculates and updates s and c
 * Return: None
 */
-void rotateMatrix(double **matrix, int i, int j, double *p_s, double *p_c) {
-    double theta;
-    double t;
-    /* matrix[i][j] is in the bottom triangle so the formulas have been
-     * updated accordingly. */
-    theta = (matrix[i][i] - matrix[j][j]) / (2 * matrix[i][j]);
-    if (theta >= 0) {
-        t = 1 / (theta + sqrt(pow(theta, 2) + 1));
-    } else {
-        t = -1 / (-theta + sqrt(pow(theta, 2) + 1));
-    }
-    *p_c = 1 / sqrt(pow(t, 2) + 1);
-    *p_s = t * *p_c;
+void getCSOfP(double **A, int i, int j, double *cp, double *sp) {
+    double theta, t;
+    int sign;
+
+    /* theta = (Ajj-Aii)/(2Ajj) */
+    theta = (A[i][i] - A[j][j]) / (2 * A[i][j]);
+    /* t = sign(theta)/(|thetha|+sqrt((theta)^2+1) */
+    sign = (theta >= 0) ? 1 : -1;
+    t = sign / (fabs(theta) + sqrt(pow(theta, 2) + 1));
+    /* c = 1/sqrt(t^2+1) */
+    *cp = 1 / sqrt(pow(t, 2) + 1);
+    /* s = t*c */
+    *sp = (t)*(*cp);
 }
 
 /*
-* Funcion: 
+* Funcion: void transformA(double **A, int n, int i, int j, double s, double c)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D), indexes of max 
+* Params: A matrix and it's dimension (1D), indexes of max 
 *         off-diagonal value, s, c
-* Action: Transforms the matrix according to the rotation matrix
+* Action: Transforms the matrix formulas
 * Return: None
 */
-void transformMatrix(double **matrix, int n, int i, int j, double s,
-                     double c) {
+void transformA(double **A, int n, int i, int j, double s, double c) {
     int r;
-    double *p_r_i;
-    double *p_r_j;
-    double temp_r_i;
-    double temp_r_j;
-    double temp_i_i;
-    double temp_j_j;
-    double temp_i_j;
-    /* matrix[i][j] is in the bottom triangle, so the formulas have been
-     * updated accordingly. */
+    double Aii, Ajj, Aij, Ari, Arj;
+
+    Aii = A[i][i];
+    Ajj = A[j][j];
+    Aij = A[i][j]; 
+    
+    /* a'ij = 0 */  
+    A[i][j] = 0;
+    /* a'ii = c^2*aii + s^2*ajj - 2*s*c*aij */
+    A[i][i] = pow(c, 2) * Aii + pow(s, 2) * Ajj - 2 * s * c * Aij;
+    /* a'jj = s^2*aii + c^2*ajj + 2*s*c*aij */
+    A[j][j] = pow(s, 2) * Aii + pow(c, 2) * Ajj + 2 * s * c * Aij;
+    
+    /* if r != i,j */
     for (r = 0; r < n; r++) {
         if (r != i && r != j) {
-            /* we save only values where rows >= columns because the matrix is
-             * symmetric so we want to update only the values that we save */
-            if (r < i) {
-                p_r_i = &matrix[i][r];
-            } else {
-                p_r_i = &matrix[r][i];
-            }
-            if (r < j) {
-                p_r_j = &matrix[j][r];
-            } else {
-                p_r_j = &matrix[r][j];
-            }
-            temp_r_i = *p_r_i;
-            temp_r_j = *p_r_j;
-            *p_r_i = c * temp_r_i + s * temp_r_j;
-            *p_r_j = c * temp_r_j - s * temp_r_i;
+            Ari = A[r][i];
+            Arj = A[r][j];
+            /* a'ri = c*ari - s*arj */
+            A[r][i] = c * Ari + s * Arj;
+            /* a'rj = c*arj + s*ari */
+            A[r][j] = c * Arj - s * Ari;
         }
     }
-    temp_i_i = matrix[i][i];
-    temp_j_j = matrix[j][j];
-    temp_i_j = matrix[i][j];
-    matrix[i][i] =
-            pow(s, 2) * temp_j_j + pow(c, 2) * temp_i_i + 2 * s * c * temp_i_j;
-    matrix[j][j] =
-            pow(c, 2) * temp_j_j + pow(s, 2) * temp_i_i - 2 * s * c * temp_i_j;
-    matrix[i][j] = 0;
+    
 }
 
 /*
-* Funcion: 
+* Funcion: void getCurrentEigenvectors(double **V, int n, int i, int j, 
+*          double s, double c)
 * -----------------------------------------------------------------------------
-* Params: a Symmetric Matrix and it's dimension (1D), indexes of max 
+* Params: Eigenvectors matrix (V) and it's dimension (1D), indexes of max 
 *         off-diagonal value, s, c
-* Action: Multiplies matrix with the rotation matrix
+* Action: Multiplies current V matrix with the new P
 * Return: None
 */
-void updateEigenvectors(double **matrix, int n, int i, int j, double s,
-                        double c) {
-    int q;
-    double temp_i;
-    double temp_j;
-    for (q = 0; q < n; q++) {
-        temp_i = matrix[q][i];
-        temp_j = matrix[q][j];
-        /* other values of the matrix are without change, because except of the
-         * 4 s-c numbers, the rotation matrix is like the identity matrix. */
-        matrix[q][j] = temp_j * c + temp_i * -s;
-        matrix[q][i] = temp_j * s + temp_i * c;
+void getCurrentEigenvectors(double **V, int n, int i, int j, double s,
+                           double c) {
+    int k;
+    double Vki, Vkj;
+
+    for (k = 0; k < n; k++) {
+        Vki = V[k][i];
+        Vkj = V[k][j];
+        V[k][i] = Vkj * s + Vki * c;
+        V[k][j] = Vkj * c + Vki * -s;
     }
 }

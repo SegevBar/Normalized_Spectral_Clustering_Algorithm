@@ -14,18 +14,19 @@
 * Return: runKMeans ? kkmeansmain : Eigenvectors matrix
 */
 double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
-    double **weightedAdjacencyMatrix, *diagonalDegreeArray; 
+    double **wam, *ddgDiagonal;
     double **lnorm, **matrix;
 
-    weightedAdjacencyMatrix = getWeightedAdjacencyMatrix
-                                (vectorsMatrix, N, vectorDim);
+    wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
-    diagonalDegreeArray = calculateDiagonalDegreeMatrix(
-                                    weightedAdjacencyMatrix, N);
-    lnorm = createLnorm(diagonalDegreeArray, 
-                                    weightedAdjacencyMatrix, N);
-    freeMatrix(weightedAdjacencyMatrix, N);
-    free(diagonalDegreeArray);
+    
+    ddgDiagonal = getDdgDiagonal(wam, N);
+    lnorm = getLnorm(ddgDiagonal, wam, N);
+    freeMatrix(wam, N);
+    free(ddgDiagonal);
+
+    printMatrix(lnorm, N, N);
+    freeMatrix(lnorm, N);
 
     matrix = getEigenvectorsMatrix(lnorm, &k, N);
     freeMatrix(lnorm, N);
@@ -53,7 +54,7 @@ double **getEigenvectorsMatrix(double **matrix, int *kp,
     int i;
     int j;
     eigenvectorsMatrix = jacobiAlgorithm(matrix, n);
-    eigenArray = createArrayOfEigens(eigenvectorsMatrix, matrix, n);
+    eigenArray = getEigensArray(eigenvectorsMatrix, matrix, n);
     freeMatrix(matrix, n);
     
     descendingSort(eigenArray, n);

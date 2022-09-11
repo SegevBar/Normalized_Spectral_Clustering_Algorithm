@@ -3,6 +3,16 @@
 #include <Python.h>
 #include "spkmeans.h"
 
+/* spkmeansmodule.c */
+static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args);
+static PyObject *nkMatrixToPython(double **nkMatrix, int N, int k);
+static PyObject *goalsOtherThenSpk(PyObject *self, PyObject *args);
+static PyObject *kmeans(PyObject *self, PyObject *args);
+static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N, 
+                                    int vectorDim);
+static CLUSTER *pythonInitializeClusters(PyObject *pythonClusters, int N);
+static void pythonInitCluster(CLUSTER *curCluster, int vectorDim);
+
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
