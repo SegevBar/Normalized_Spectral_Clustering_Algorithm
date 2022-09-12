@@ -31,87 +31,171 @@ def main():
     if goal == "spk":
         spk(k, filename)
     else:
-        spkmeansmodule.goalsOtherThenSpk(goal, filename)
+        spkmeansmodule.runGoalOfCProgram(goal, filename)
+
 
 def spk(k, filename):
     '''
-    Funcion: 
+    Funcion: spk(k, filename)
     ----------------------------------------------------------------------------
-    Params: 
+    Params: k, input file
 
-    Action: 
+    Action: Performs the Normalized Spectral Clustering algorithm
 
-    Return: 
+    Return: Prints indexes of initial centroids and calculated centroids
     '''
     # The function performs the normalizedSpectralClustering algorithm
-    vectorsMatrix = spkmeansmodule.spkWithoutKmeans(k, filename)
+    vectorsMatrix = spkmeansmodule.getPythonNormalizedKEigenvectorsMatrix
+    (k, filename)
+    
+    # init parameters and run kmeans++
     vectorsArray = np.array(vectorsMatrix)
-    clusters = kmeanspp(vectorsArray)
-    spkmeansmodule.kmeans(vectorsMatrix, clusters, np.size(vectorsArray, 1))
+    centroids = np.array([[0.0 for i in range(k)] 
+    for i in range(k)])
+    chosenKCentroidsIndexs = kmeanspp(vectorsArray, centroids)
+    
+    # init parameters and run kmeans from C program
+    kmeansArgs = getArgsForKmeans(vectorsArray, centroids)
+    kmeansCentroids = spkmeansmodule.runKmeansFromCProgram(kmeansArgs[0],
+    kmeansArgs[1], kmeansArgs[2], kmeansArgs[3])
+    
+    printClusters(chosenKCentroidsIndexs, kmeansCentroids)
 
 
-def kmeanspp(vectorsMatrix):
+
+def kmeanspp(vectorsMatrix, centroids):
     '''
-    Funcion: 
+    Funcion: kmeanspp(vectorsMatrix, centroids)
     ----------------------------------------------------------------------------
-    Params: 
+    Params: numpy matrix of c program normalized k eigenvectors matrix (T)
 
-    Action: 
+    Action: Init paramameters and run kmeans++ algorithm
+            Updates centroids list of lists
 
-    Return: 
+    Return: List of chosen centroids indexes
     '''
     # The function initializes K centroids for the K-means algorithm
     np.random.seed(0)
-    len_column = np.size(vectorsMatrix, 0)
-    len_row = np.size(vectorsMatrix, 1)
+    n = np.size(vectorsMatrix, 0)
+    vectorDim = np.size(vectorsMatrix, 1)
+    k = vectorDim
 
-    #rearrange vectors for algorithm 
-    vectorsMatrix = np.hstack(
-        (np.arange(len_column).reshape(len_column, 1), vectorsMatrix))
+    # prepare data structures
+    distances = [-1.0 for i in range(n)]
+    probs = [0.0 for i in range(n)]
+    centroidsLoc = [0 for i in range(k)]
 
-    #prepare data structures
-    clusters = np.zeros((len_row, len_row + 1))
-    prob = [np.Infinity for i in range(len_column)]
-    di = [np.Infinity for i in range(len_column)]
-    lindex = np.random.choice(len_column)
-    clusters[0] = vectorsMatrix[lindex, :]
+    # choose a random datapoint to be the first centroid
+    rendIndex = np.random.choice(n)
+    centroids[0] = np.ndarray.copy(vectorsMatrix[rendIndex])
+    centroidsLoc[0] = rendIndex
 
-    #main algorithm loop:
-    for i in range(1, len_row):
-        for j in range(len_column):
-            temp = np.linalg.norm(vectorsMatrix[j, 1:] - clusters[i - 1][1:]) ** 2
-            if temp < di[j]:
-                di[j] = temp
-        base = sum(di)
-        for j in range(len_column):
-            prob[j] = di[j] / base
-        lindex = np.random.choice(len_column, p=prob)
-        clusters[i] = vectorsMatrix[lindex, :]
-    
-    printClusters(clusters[:, 0])
-    return clusters[:, 1:].tolist()
+    # algorithm loop
+    for i in range(1, k):
+        minDistance(vectorsMatrix, centroids, distances, i)
+        calcProbability(vectorsMatrix, distances, probs)
+        rendIndex = np.random.choice(n, p = probs)
+        centroidsLoc[i] = rendIndex
+        centroids[i] = np.ndarray.copy(vectorsMatrix[rendIndex])
 
-def printClusters(indices):
+    return centroidsLoc
+
+
+def minDistance(vectorsMatrix, centroids, distances, D):
     '''
-    Funcion: 
+    Funcion: minDistance(vectorsMatrix, centroids, distances, D)
     ----------------------------------------------------------------------------
-    Params: 
+    Params: data points, centroids vectors list, calculated distances and 
+            current centroid index
 
-    Action: 
+    Action: Calculates Dl = min(xl-uj)^2 
+            Updates distances list accordingly
 
-    Return: 
+    Return: None
     '''
-    # The function prints the indices
-    for i in range(len(indices)):
-        if i != len(indices) - 1:
-            print(int(indices[i]), end=",")
-        else:
-            print(int(indices[i]))
+    for i in range(len(vectorsMatrix)):
+        curDistance = pow(np.linalg.norm(vectorsMatrix[i] - centroids[D-1]), 2)
+        
+        if curDistance < distances[i] or distances[i] == -1.0:
+            distances[i] = curDistance
+
+
+def calcProbability(vectorsMatrix, distances, probs):
+    '''
+    Funcion: calcProbability(vectorsMatrix, distances, probs)
+    ----------------------------------------------------------------------------
+    Params: data points, calculated distances, calculated probabilities
+            
+    Action: Calculates P(xl) = Dl/sum(Dm) m=i,..,N
+            Updates probs list accordingly
+
+    Return: None
+    '''
+    sum = 0.0
+    for dist in distances:
+        sum += dist
+    for i in range(len(vectorsMatrix)):
+        probs[i] = distances[i] / sum
+
+
+def getArgsForKmeans(vectorsMatrix, centroids):
+    '''
+    Funcion: getArgsForKmeans(vectorsMatrix, centroids)
+    ----------------------------------------------------------------------------
+    Params: data points, centroids vectors list
+
+    Action: Converts vectors matrix and centroids matrix to 1D list
+
+    Return: tuple of args (dataPoints1D, centroids1D, n, dim)
+    '''
+    #set arguments for c extension use
+    dim = len(centroids[0])
+    n = len(vectorsMatrix)
+
+    #transform to 1D list of data points for the c extension
+    dataPoints1D = []
+    for vec in vectorsMatrix:
+        for i in range(dim):
+            dataPoints1D.append(vec[i])
+
+    #transform to 1D list of centroids for the c extension
+    centroids1D = []
+    for centroid in centroids:
+        for i in range(dim):
+            centroids1D.append(centroid[i])
+    
+    return (dataPoints1D, centroids1D, n, dim)
+    
+
+def printClusters(chosenKCentroidsIndexs, kmeansCentroids):
+    '''
+    Funcion: printClusters(indices)
+    ----------------------------------------------------------------------------
+    Params: List of kmeans++ centroid indexs, centroids vectors
+
+    Action: Prints centroid indexs and kmeans centroids
+
+    Return: None
+    '''
+    print(*chosenKCentroidsIndexs, sep=",")
+    for centroid in kmeansCentroids:
+        print(*["{:.4f}".format(num) for num in centroid], sep=",")
+
 
 def validateInput(bool):
+    '''
+    Funcion: validateInput(bool)
+    ----------------------------------------------------------------------------
+    Params: boolean
+
+    Action: Abort program if the input isn't valid
+
+    Return: None
+    '''
     if bool:
         print("Invalid Input!")
         quit()
+
 
 if __name__ == '__main__':
     main()

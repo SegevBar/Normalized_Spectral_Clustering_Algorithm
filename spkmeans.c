@@ -35,6 +35,7 @@ void runGoal(char* goal, char* filename) {
     int N, vectorDim;
     double **vectorsMatrix;
 
+    /* create matrix of vectors from file data points */
     vectorDim = getVectorDim(filename);
     N = getVectorCount(filename);
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);

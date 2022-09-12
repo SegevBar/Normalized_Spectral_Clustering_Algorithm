@@ -5,187 +5,209 @@
 #include <math.h>
 #include "spkmeans.h"
 
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Clusters, Vectors matrix and its' dimentions
-* Action: Executes the kmeans algorithm
-* Return: Print output centroids
-*/
-void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
-                int N) {
-    int i;
-    int j;
-    int k;
-    double minval;
-    int mincluster;
-    double arg;
-    int stop;
-
-    for (i = 0; i < MAX_ITER_KMEANS; i++) {
-        for (j = 0; j < N; j++) {
-            minval = euclideanNorm(vectorsMatrix[j], clusters[0].centroid,
-                                   vectorDim);
-            mincluster = 0;
-            for (k = 1; k < vectorDim; k++) {
-                arg = euclideanNorm(vectorsMatrix[j], clusters[k].centroid,
-                                    vectorDim);
-                if (arg < minval) {
-                    minval = arg;
-                    mincluster = k;
-                }
-            }
-            updateClosest(&clusters[mincluster], vectorsMatrix[j], vectorDim);
-        }
-        stop = 1;
-        for (k = 0; k < vectorDim; k++) {
-            updateCentroid(&clusters[k], vectorDim);
-            if (!clusters[k].equalTolLast) {
-                stop = 0;
-            }
-        }
-        if (stop) {
-            break;
-        }
-    }
-    printCentroids(clusters, vectorDim);
-    freeMatrix(vectorsMatrix, N);
-    freeClusters(clusters, vectorDim);
-}
-
-
 
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: Vectors matrix, Point size
-* Action: Create k clusters 
-* Return: Array of clusters
+* Params: 
+* Action: 
+* Return: 
 */
-CLUSTER *initializeClusters(double **vectorsMatrix, int K) {
-
-    CLUSTER *clusters;
-    int i;
-
-    clusters = (CLUSTER *) calloc(K, sizeof(CLUSTER));
-    validateAction(clusters != NULL);
-
-    for (i = 0; i < K; i++) {
-        initCluster(&clusters[i], vectorsMatrix[i], K);
-    }
-
-    return clusters;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: a Cluster, a Point, Point size
-* Action: Init cluster
-* Return: None
-*/
-void initCluster(CLUSTER *curCluster, double *dataPoint, int vectorDim) {
-
-    curCluster->centroid = (double *) calloc(vectorDim, sizeof(double));
-    validateAction(curCluster->centroid != NULL);
-    memcpy(curCluster->centroid, dataPoint, vectorDim * sizeof(double));
-    curCluster->centroid_closest =
-            (double *) calloc(vectorDim, sizeof(double));
-    validateAction(curCluster->centroid_closest != NULL);
-
-    curCluster->size = 0;
-    curCluster->equalTolLast = 0; /* 0 is False */
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: a Cluster, a Point, Point size
-* Action: Updates centroid_closest of cluster to next centroid
-* Return: None
-*/
-void
-updateClosest(CLUSTER *curCluster, const double *datapoint, int vectorDim) {
-
-    int i;
-    for (i = 0; i < vectorDim; i++) {
-        curCluster->centroid_closest[i] =
-                curCluster->centroid_closest[i] + datapoint[i];
-    }
-    curCluster->size++;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: a Cluster, Point size
-* Action: Updates cluster centroid and zeroing the centroid_closest
-* Return: None
-*/
-void updateCentroid(CLUSTER *curCluster, int vectorDim) {
-
-    int i;
-    curCluster->equalTolLast = 1;
-    for (i = 0; i < vectorDim; i++) {
-        curCluster->centroid_closest[i] =
-                curCluster->centroid_closest[i] / curCluster->size;
-        if (curCluster->centroid_closest[i] != curCluster->centroid[i]) {
-            curCluster->equalTolLast = 0;
-        }
-    }
-    free(curCluster->centroid);
-    curCluster->centroid = curCluster->centroid_closest;
-    curCluster->centroid_closest = (double *) calloc(vectorDim,
-                                                     sizeof(double));
-    validateAction(curCluster->centroid_closest != NULL);
-    curCluster->size = 0;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: 2 Vectors, Point size
-* Action: Computes euclidean norm between 2 points
-* Return: square norm
-*/
-double euclideanNorm(const double *vector1, const double *vector2,
-                     int vectorDim) {
-    double sum = 0.0;
-    double res;
+static PyObject *kmeans(int k, int max_iter_py, double epsilon_py, int dim_py, int N_py, PyObject *centroids_py, PyObject *vectors_py)
+{
+    int N = N_py;
+    int max_iter = max_iter_py;
+    double epsilon = epsilon_py;
+    int dim = dim_py;
+    Cluster *clusters;
+    double *curr_vector;
+    int has_converged = 0;
+    int cnt = 0;
     int i = 0;
+    int j = 0;
+    int curr = 0;
 
-    for (i = 0; i < vectorDim; i++) {
-        sum += (vector1[i]-vector2[i])*(vector1[i]-vector2[i]);
+    /*convert k centroids from python to C*/
+    clusters = (Cluster *)calloc(k, sizeof(Cluster));
+    if (clusters == NULL) 
+    {
+        printf("An Error Has Occurred\n");
+        exit(1);
     }
-    res = sqrt(sum);
-    return res;
-}
 
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Clusters, point size
-* Action: Prints final centroids from the K-means algorithm
-* Return: None
-*/
-void printCentroids(CLUSTER *clusters, int vectorDim) {
+    curr = 0;
+    for (i = 0; i < k; i++)
+    {
+        clusters[i].centroid = (double *)calloc(dim, sizeof(double));
+        if (clusters[i].centroid == NULL)
+        {
+            printf("An Error Has Occurred\n");
+            exit(1);
+        }
 
-    int i;
-    int j;
+        for (j = 0; j < dim; j++)
+        {
+            clusters[i].centroid[j] = PyFloat_AsDouble(PyList_GetItem(centroids_py, curr));
+            curr++;
+        }
 
-    for (i = 0; i < vectorDim; i++) {
-        for (j = 0; j < vectorDim; j++) {
-            if (j != vectorDim - 1) {
-                printf("%.4f,", round(clusters[i].centroid[j]));
-            } else {
-                if (i != vectorDim - 1) {
-                    printf("%.4f\n", round(clusters[i].centroid[j]));
-                } else {
-                    printf("%.4f", round(clusters[i].centroid[j]));
-                }
-            }
+        clusters[i].vectors_count = 0;
+        clusters[i].vectors_sum = (double *)calloc(dim, sizeof(double));
+        if (clusters[i].vectors_sum == NULL)
+        {
+            printf("An Error Has Occurred\n");
+            exit(1);
         }
     }
+
+    /*main loop*/
+    cnt = 0;
+    while ((cnt < max_iter) && (!has_converged))
+    {
+        curr = 0;
+
+        /*find current vector cluster*/
+        for (i = 0; i < N; i++)
+        {
+            curr_vector = (double*)calloc(dim, sizeof(double));
+            if (curr_vector == NULL)
+            {
+                printf("An Error Has Occurred\n");
+                exit(1);
+            }
+            for (j = 0; j < dim; j++)
+            {
+                curr_vector[j] = PyFloat_AsDouble(PyList_GetItem(vectors_py, curr));
+                curr++;
+            }
+            calcCluster(curr_vector, clusters, k, dim);
+            free(curr_vector);
+        }
+        
+        /*update centroids*/
+        has_converged = updateCentroids(clusters, k, dim, epsilon);
+        
+        /*reset*/
+        for(i = 0; i < k; i++)
+        {
+            clusters[i].vectors_count = 0;
+            for(j = 0; j < dim; j++)
+            {
+                clusters[i].vectors_sum[j] = 0;
+            }
+        }
+        cnt++;
+    }
+
+    return cToPyObject(clusters, k, dim, N);
+}
+
+void calcCluster(double* vector, Cluster* clusters, int k, int dim)
+{
+    double min_distance = -1.0;
+    int closest_cluster = -1;
+    double distance;
+    int i = 0;
+    int j = 0;
+
+    /*find closest cluster to current vector*/
+    for (i = 0; i < k; i++)
+    {
+        distance = calcDistance(vector, clusters[i].centroid, dim);
+        if ((distance < min_distance) || (min_distance < 0))
+        {
+            min_distance = distance; 
+            closest_cluster = i;
+        }
+    }
+    
+    /*update closest cluster*/
+    clusters[closest_cluster].vectors_count++; 
+    for (j = 0; j < dim; j++)
+    {
+        clusters[closest_cluster].vectors_sum[j] += vector[j];
+    }
+}
+
+double calcDistance(double* vector1, double* vector2, int dim)
+{
+    double sum = 0.0;
+    int j = 0;
+
+    for (j = 0; j < dim; j++)
+    {
+        sum += (vector1[j]-vector2[j])*(vector1[j]-vector2[j]);
+    } 
+    return sum;
+}
+
+int updateCentroids(Cluster* clusters, int k, int dim, double epsilon)
+{
+    int i = 0;
+    int j = 0;
+    int has_converged = 1;
+    double* new_centroid = NULL;
+    double dist = 0;
+
+    /*calculate new centroid*/
+    for (i = 0; i < k; i++)
+    {
+        new_centroid = (double*)calloc(dim, sizeof(double));
+        if (new_centroid == NULL)
+        {
+            printf("An Error Has Occurred\n");
+            exit(1);
+        }
+        for (j = 0; j < dim; j++)
+        {
+            new_centroid[j] = (clusters[i].vectors_sum[j]/clusters[i].vectors_count);
+        }
+        dist = sqrt(calcDistance(clusters[i].centroid, new_centroid, dim));
+
+        /*check if convergence did not accured*/
+        if (dist >= epsilon)
+        {
+            has_converged = 0;
+        }
+
+        /*update centroid*/
+        memcpy(clusters[i].centroid, new_centroid, sizeof(double)*dim);
+
+        free(new_centroid);
+    }
+    return has_converged;
+}
+
+/*convert centroids from C to python*/
+PyObject *cToPyObject(Cluster *clusters, int k, int dim, int N)
+{
+    PyObject *clusters_py;
+    int i = 0;
+    int j = 0;
+    PyObject *value;
+    PyObject *curr_vector;
+
+    clusters_py = PyList_New(k);
+    for (i = 0; i < k; i++)
+    {
+        curr_vector = PyList_New(dim);
+        for (j = 0; j < dim; j++)
+        {
+            value = Py_BuildValue("d", clusters[i].centroid[j]);
+            PyList_SetItem(curr_vector, j, value);
+        }
+        /*add PyObject centroid to PyList clusters*/
+        PyList_SetItem(clusters_py, i, curr_vector);
+    }
+    /*free clusters memory*/
+    for (i = 0; i < k; i++)
+    {
+        free(clusters[i].centroid);
+        free(clusters[i].vectors_sum);
+    }
+    free(clusters);
+    
+    return clusters_py;
 }
 
 /*

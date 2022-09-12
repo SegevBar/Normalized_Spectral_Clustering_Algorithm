@@ -18,6 +18,9 @@ typedef struct
     double *centroid_closest;
     int size;
     int equalTolLast;
+    int vectorsCount;
+    double* vectorsSum;
+    double* centroid;
 } CLUSTER;
 
 /* spkmeans.c */
