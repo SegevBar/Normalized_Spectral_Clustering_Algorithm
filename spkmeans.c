@@ -7,16 +7,14 @@
 
 
 /*
-* Funcion: 
+* Funcion: int main(int argc, char *argv[])
 * -----------------------------------------------------------------------------
 * Params: input from CMD
 * Action: runs C program according to CMD arguments
-* Return: 0 (None)
+* Return: Output according to goal
 */
 int main(int argc, char *argv[]) {
-   
-    char *goal;
-    char *filename;
+    char *goal, *filename;
 
     validateInput(argc == 3);
     goal = argv[1];
@@ -33,7 +31,7 @@ int main(int argc, char *argv[]) {
 * Action: runs program according to CMD input. prints output according goal
 * Return: None
 */
-void runGoal(int k, char* goal, char* filename) {
+void runGoal(char* goal, char* filename) {
     int N, vectorDim;
     double **vectorsMatrix;
 
@@ -52,9 +50,6 @@ void runGoal(int k, char* goal, char* filename) {
     }
     else if (strcmp(goal, "jacobi") == 0) {
         jacobi(vectorsMatrix, N, vectorDim);
-    }
-    else if (strcmp(goal, "spk") == 0) {
-        spk(k, vectorsMatrix, N, vectorDim);
     }
     else {
         validateInput(0);

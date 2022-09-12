@@ -13,8 +13,7 @@
 * Return: Prints Normalized Graph Laplacian
 */
 void lnorm(double** vectorsMatrix, int N, int vectorDim) {
-    double **wam, *ddgDiagonal;
-    double **lnorm;
+    double **wam, *ddgDiagonal, **lnorm;
 
     wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              

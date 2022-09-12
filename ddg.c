@@ -32,8 +32,7 @@ void ddg(double** vectorsMatrix, int N, int vectorDim) {
 * Return: Diagonal Degree Matrix
 */
 double** getDiagonalDegreeMatrix(double **wam, int N) {
-    double *diagonal;
-    double **ddg;
+    double *diagonal, **ddg;
     int i;
 
     diagonal = getDdgDiagonal(wam, N);
@@ -54,9 +53,7 @@ double** getDiagonalDegreeMatrix(double **wam, int N) {
 * Return: Array of values in diagonal
 */
 double* getDdgDiagonal(double **wam, int N) {
-
-    double *diagonal; 
-    double sum;
+    double *diagonal, sum;
     int i, j;
     
     diagonal = (double*) calloc(N, sizeof(double));

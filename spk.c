@@ -6,16 +6,18 @@
 #include "spkmeans.h"
 
 /*
-* Funcion: double** spk(int k, double** vectorsMatrix, int N, int vectorDim)
+* Funcion: double** getNormalizedKEigenvectorsMatrix(int k, double** 
+*          vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
 * Params: k, Vectors matrix, Vector count, Vector dimension
 * Action: performs The Normalized Spectral Clustering Algorithm *WITHOUT*
 *         kmeans (first step executes at python program)
-* Return: runKMeans ? kkmeansmain : Eigenvectors matrix
+* Return: Normalized K Eigenvectors Matrix (T)
 */
-double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
-    double **wam, *ddgDiagonal;
-    double **lnorm, **matrix;
+double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix, 
+                                          int N, int vectorDim) {
+    double **wam, *ddgDiagonal, **lnorm, **eigenVecMatrix, **T;
+    EIGEN* eigens;
 
     wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
@@ -25,145 +27,131 @@ double** spk(int k, double** vectorsMatrix, int N, int vectorDim) {
     freeMatrix(wam, N);
     free(ddgDiagonal);
 
-    printMatrix(lnorm, N, N);
+    eigenVecMatrix = jacobiAlgorithm(lnorm, N);
+    eigens = createEigensArr(eigenVecMatrix, lnorm, N); 
     freeMatrix(lnorm, N);
+    freeMatrix(eigenVecMatrix, N);
+    
+    descendingSort(eigens, N); /*sort eigans from largest to smallest*/
+    k = (k == 0) ? eigengapHeuristic(eigens, N) : k;
 
-    matrix = getEigenvectorsMatrix(lnorm, &k, N);
-    freeMatrix(lnorm, N);
-    
-    normalizeMatrix(matrix, N, k);
-    
-    return matrix;
+    T = createT(eigens, k, N);
+    return T;
 }
 
 /*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Symmetric Matrix, k pointer, Matrix size (1D)
-* Action: Execute jacobi algorithm, eigengap heuristic and create returned 
-*         matrix
-* Return: Matrix With Eigenvectors As Columns
-*/
-double **getEigenvectorsMatrix(double **matrix, int *kp,
-                                                  int n) {
-
-    EIGEN *eigenArray; /* array of EIGENS -
-     * structs that contain an eigenvalue and a pointer to its eigenvector. */
-    double **eigenvectorsMatrix;
-    double **newMatrix;
-    int i;
-    int j;
-    eigenvectorsMatrix = jacobiAlgorithm(matrix, n);
-    eigenArray = getEigensArray(eigenvectorsMatrix, matrix, n);
-    freeMatrix(matrix, n);
-    
-    descendingSort(eigenArray, n);
-    /* get k with eigengap heuristic if k == 0 */
-    if (*kp == 0) {
-        *kp = eigengapHeuristic(eigenArray, n);
-    }
-    newMatrix = createRegularMatrix(n, *kp);
-    for (j = 0; j < *kp; j++) {
-        for (i = 0; i < n; i++) {
-            newMatrix[i][j] = *(eigenArray[j].eigenVector + n * i);
-        }
-    }
-    freeMatrix(eigenvectorsMatrix, n);
-    free(eigenArray);
-    return newMatrix;
-}
-
-/*
-* Funcion: 
+* Funcion: EIGEN *createEigensArr(double **eigenVectors, double **eiganVals, 
+*          int n)
 * -----------------------------------------------------------------------------
 * Params: Eigenvectors Matrix, Eigenvalues Matrix, Matrix size (1D)
 * Action: Create array of EIGENS representing eigenvalue and its' eigenvector
 * Return: Array of EIGENS representing eigenvalue and its' eigenvector
 */
-EIGEN *getEigensArray(double **vectorsMatrix, double **valuesMatrix,
-                           int n) {
+EIGEN *createEigensArr(double **eigenVectors, double **eiganVals, int n) {
     EIGEN *eigenArray;
     int i;
-    eigenArray = (EIGEN *) calloc(n, sizeof(EIGEN));
+
+    eigenArray = (EIGEN*) calloc(n, sizeof(EIGEN));
     validateAction(eigenArray != NULL);
+
     for (i = 0; i < n; i++) {
-        eigenArray[i].eigenValue = valuesMatrix[i][i];
-        eigenArray[i].eigenVector = &vectorsMatrix[0][i];
+        eigenArray[i].eigenValue = eiganVals[i][i];
+        eigenArray[i].eigenVector = &eigenVectors[0][i];
     }
     return eigenArray;
 }
 
-
 /*
-* Funcion: 
+* Funcion: int eigengapHeuristic(EIGEN *eigenArray, int n)
 * -----------------------------------------------------------------------------
 * Params: EIGENS array and it's size
 * Action: Execute the eigengap heuristic
 * Return: k - number of clusters
 */
-int eigengapHeuristic(EIGEN *eigenArray, int arrLength) {
-    double max;
-    double cur;
-    int max_index;
-    int i;
-    max_index = 0;
+int eigengapHeuristic(EIGEN *eigenArray, int n) {
+    double max, curMax;
+    int maxIndex, i;
+    
+    maxIndex = 0;
     max = eigenArray[1].eigenValue - eigenArray[0].eigenValue;
-    for (i = 1; i < arrLength / 2; i++) {
-        cur = eigenArray[i + 1].eigenValue - eigenArray[i].eigenValue;
-        if (cur > max) {
-            max_index = i;
-            max = cur;
+    for (i = 1; i < n / 2; i++) {
+        curMax = eigenArray[i+1].eigenValue - eigenArray[i].eigenValue;
+        if (curMax > max) {
+            maxIndex = i;
+            max = curMax;
         }
     }
-    return max_index + 1;
+    return maxIndex + 1;
 }
 
 /*
-* Funcion: 
+* Funcion: double** createT(EIGEN* eigens, int k, int N)
+* -----------------------------------------------------------------------------
+* Params: Descending sorted eigens array, k (col), N (rows)
+* Action: Create Normalized K Eigenvectors Matrix (T) from k largest eigans
+* Return: Matrix With Eigenvectors As Columns
+*/
+double** createT(EIGEN* eigens, int k, int N) {
+    double **T, *currEigenvector;
+    int i, j;
+    
+    T = createMatrix(N, k);  /* allocate memory */
+    /* copy eiganvectors of k largest eigan values */
+    for (j = 0; j < k; j++) {
+        currEigenvector = eigens[j].eigenVector;
+        for (i = 0; i < N; i++) {
+            T[i][j] = currEigenvector[i];
+        }
+    }
+    free(eigens);
+    normalizeMatrixByRows(T, N, k);
+
+    return T;
+}
+
+/*
+* Funcion: void normalizeMatrixByRows(double **matrix, int row, int col)
 * -----------------------------------------------------------------------------
 * Params: a Matrix and its' dimensions
 * Action: Normalizes values in matrix
 * Return: None
 */
-void normalizeMatrix(double **matrix, int rows, int columns) {
- 
-    double *arraySumOfSquaresRows;
-    int i;
-    int j;
-    arraySumOfSquaresRows = calculateRootOfSumOfSquaresRows(matrix, rows,
-                                                            columns);
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < columns; j++) {
-            matrix[i][j] = matrix[i][j] / arraySumOfSquaresRows[i];
+void normalizeMatrixByRows(double **matrix, int row, int col) {
+    double *denominatorsArr;
+    int i, j;
+
+    denominatorsArr = getNormalizeDenominators(matrix, row, col);
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++) {
+            matrix[i][j] = matrix[i][j] / denominatorsArr[i];
         }
     }
-    free(arraySumOfSquaresRows);
+    free(denominatorsArr);
 }
 
 /*
-* Funcion: 
+* Funcion: double* getNormalizeDenominators(double **matrix, int row, int col)
 * -----------------------------------------------------------------------------
 * Params: a Matrix and its' dimensions
-* Action: Calaulate sum of (u_ij)^2 for each row for normalize algo
+* Action: Calaulate sqrt of sum of (u_ij)^2 for each row for normalize algo
 * Return: Array with calculated sum of each row
 */
-double* calculateRootOfSumOfSquaresRows(double **matrix, int rows, 
-                                        int columns) {
-    double *arraySumOfSquaresColumns;
-    double sum;
-    int j;
-    int i;
+double* getNormalizeDenominators(double **matrix, int row, int col) {
+    double *denominatorsArr, sum;
+    int j, i;
+    
+    denominatorsArr = (double *) calloc(row, sizeof(double));
+    validateAction(denominatorsArr != NULL);
+
     sum = 0;
-    arraySumOfSquaresColumns = (double *) calloc(rows, sizeof(double));
-    validateAction(arraySumOfSquaresColumns != NULL);
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < columns; j++) {
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++) {
             sum += pow(matrix[i][j], 2);
         }
-        arraySumOfSquaresColumns[i] = sqrt(sum);
+        denominatorsArr[i] = sqrt(sum);
         sum = 0;
     }
-    return arraySumOfSquaresColumns;
+    return denominatorsArr;
 }
 
 /*
@@ -173,20 +161,20 @@ double* calculateRootOfSumOfSquaresRows(double **matrix, int rows,
 * Action: Sorts EIGEN array in descending order
 * Return: None
 */
-void descendingSort(EIGEN* eigenArray, int arrLength) {
+void descendingSort(EIGEN* eigens, int n) {
     int i, j;
     double tmpEigenVal, *tmpEigenVector;
  
-    for (i = 0; i < arrLength; ++i) {
-        for (j = i + 1; j < arrLength; ++j) {
-            if (eigenArray[i].eigenValue < eigenArray[j].eigenValue) {
-                tmpEigenVal = eigenArray[i].eigenValue;
-                eigenArray[i].eigenValue = eigenArray[j].eigenValue;
-                eigenArray[j].eigenValue = tmpEigenVal;
+    for (i = 0; i < n; ++i) {
+        for (j = i + 1; j < n; ++j) {
+            if (eigens[i].eigenValue < eigens[j].eigenValue) {
+                tmpEigenVal = eigens[i].eigenValue;
+                eigens[i].eigenValue = eigens[j].eigenValue;
+                eigens[j].eigenValue = tmpEigenVal;
 
-                tmpEigenVector = (eigenArray[i].eigenVector);
-                eigenArray[i].eigenVector = (eigenArray[j].eigenVector);
-                eigenArray[j].eigenVector = tmpEigenVector;
+                tmpEigenVector = (eigens[i].eigenVector);
+                eigens[i].eigenVector = (eigens[j].eigenVector);
+                eigens[j].eigenVector = tmpEigenVector;
             }
         }
     }

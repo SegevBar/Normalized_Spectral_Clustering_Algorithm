@@ -2,46 +2,64 @@ import numpy as np
 import spkmeansmodule
 import sys
 
-'''
-Funcion: 
------------------------------------------------------------------------------
-Params: 
-Action: 
-Return: 
-'''
+
 def main():
-    # The function takes the input from argv and runs a function that
-    # appropriate to the goal
-    k = int(sys.argv[1])
+    '''
+    Funcion: main()
+    ----------------------------------------------------------------------------
+    Params: input from CMD
+
+    Action: Validate CMD input and runs Python program according goal
+
+    Return: Output according to goal
+    '''
+    # validate only 4 CND args -> program, k, goal, filaname
+    validateInput(len(sys.argv) != 4)
+
+    # get k and validate it
+    try:
+        k = int(sys.argv[1])
+    except:
+        validateInput(False)
+    validateInput('.' in str(k) or int(k) <= 0)
+
+    # get goal and filename
     goal = sys.argv[2]
     filename = sys.argv[3]
+
+    # run goal
     if goal == "spk":
         spk(k, filename)
     else:
         spkmeansmodule.goalsOtherThenSpk(goal, filename)
 
-'''
-Funcion: 
------------------------------------------------------------------------------
-Params: 
-Action: 
-Return: 
-'''
 def spk(k, filename):
+    '''
+    Funcion: 
+    ----------------------------------------------------------------------------
+    Params: 
+
+    Action: 
+
+    Return: 
+    '''
     # The function performs the normalizedSpectralClustering algorithm
     vectorsMatrix = spkmeansmodule.spkWithoutKmeans(k, filename)
-    VectorsArray = np.array(vectorsMatrix)
-    clusters = kmeanspp(VectorsArray)
-    spkmeansmodule.kmeans(vectorsMatrix, clusters, np.size(VectorsArray, 1))
+    vectorsArray = np.array(vectorsMatrix)
+    clusters = kmeanspp(vectorsArray)
+    spkmeansmodule.kmeans(vectorsMatrix, clusters, np.size(vectorsArray, 1))
 
-'''
-Funcion: 
------------------------------------------------------------------------------
-Params: 
-Action: 
-Return: 
-'''
+
 def kmeanspp(vectorsMatrix):
+    '''
+    Funcion: 
+    ----------------------------------------------------------------------------
+    Params: 
+
+    Action: 
+
+    Return: 
+    '''
     # The function initializes K centroids for the K-means algorithm
     np.random.seed(0)
     len_column = np.size(vectorsMatrix, 0)
@@ -73,20 +91,27 @@ def kmeanspp(vectorsMatrix):
     printClusters(clusters[:, 0])
     return clusters[:, 1:].tolist()
 
-'''
-Funcion: 
------------------------------------------------------------------------------
-Params: 
-Action: 
-Return: 
-'''
 def printClusters(indices):
+    '''
+    Funcion: 
+    ----------------------------------------------------------------------------
+    Params: 
+
+    Action: 
+
+    Return: 
+    '''
     # The function prints the indices
     for i in range(len(indices)):
         if i != len(indices) - 1:
             print(int(indices[i]), end=",")
         else:
             print(int(indices[i]))
+
+def validateInput(bool):
+    if bool:
+        print("Invalid Input!")
+        quit()
 
 if __name__ == '__main__':
     main()

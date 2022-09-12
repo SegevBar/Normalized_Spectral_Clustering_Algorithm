@@ -18,8 +18,8 @@ void jacobi(double** matrix, int N, int vectorDim) {
 
     eigenvectorsMatrix = jacobiAlgorithm(matrix, N);
     
-    printDiagonal(matrix, N);
-    printTransposedMatrix(eigenvectorsMatrix, N, vectorDim);
+    printMatrixDiagonal(matrix, N);
+    printMatrix(eigenvectorsMatrix, N, vectorDim);
     
     freeMatrix(matrix, N);
     freeMatrix(eigenvectorsMatrix, N);
@@ -47,7 +47,7 @@ double **jacobiAlgorithm(double **A, int n) {
         getIJOfLargestOffDiag(A, n, &i, &j); /*updates i j via pointers*/
         getCSOfP(A, i, j, &c, &s); /*updates s c via pointers*/
         transformA(A, n, i, j, s, c); 
-        getCurrentEigenvectors(V, n, i, j, s, c);
+        getCurrentV(V, n, i, j, s, c);
         
         /* check convergence */
         offAt = off(A, n);
@@ -78,6 +78,24 @@ double off(double **A, int n) {
         }
     }
     return sum; 
+}
+
+/*
+* Funcion: double **createIdentityMatrix(int n)
+* -----------------------------------------------------------------------------
+* Params: Length of squared identity matrix
+* Action: Create identity matrix
+* Return: Identity matrix
+*/
+double **createIdentityMatrix(int n) {
+    int i;
+    double **matrix;
+
+    matrix = createSquareMatrix(n); /* allocate memory */
+    for (i = 0; i < n; i++) {
+        matrix[i][i] = 1;
+    }
+    return matrix;
 }
 
 /*
@@ -184,16 +202,14 @@ void transformA(double **A, int n, int i, int j, double s, double c) {
 }
 
 /*
-* Funcion: void getCurrentEigenvectors(double **V, int n, int i, int j, 
-*          double s, double c)
+* Funcion: void getCurrentV(double **V, int n, int i, int j, double s, double c)
 * -----------------------------------------------------------------------------
 * Params: Eigenvectors matrix (V) and it's dimension (1D), indexes of max 
 *         off-diagonal value, s, c
 * Action: Multiplies current V matrix with the new P
 * Return: None
 */
-void getCurrentEigenvectors(double **V, int n, int i, int j, double s,
-                           double c) {
+void getCurrentV(double **V, int n, int i, int j, double s, double c) {
     int k;
     double Vki, Vkj;
 

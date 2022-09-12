@@ -6,53 +6,34 @@
 #define round(x)((((x)>-0.00005)&&((x)<=0))?(0):(x))
 
 /* Structs */ 
-struct cluster {
+typedef struct 
+{
+    double *eigenVector;
+    double eigenValue;
+} EIGEN;
+
+typedef struct 
+{
     double *centroid;
     double *centroid_closest;
     int size;
     int equalTolLast;
-};
-typedef struct cluster CLUSTER;
-
-struct eigen {
-    double *eigenVector;
-    double eigenValue;
-};
-typedef struct eigen EIGEN;
+} CLUSTER;
 
 /* spkmeans.c */
-void runGoal(int k, char *goal, char *filename);
+void runGoal(char *goal, char *filename);
 
 /* Utils.c */
-double** getVectorsMatrix(char *filename, int N, int dim);
-int getVectorCount(char *filename);
 int getVectorDim(char *filename);
+int getVectorCount(char *filename);
+double** getVectorsMatrix(char *filename, int N, int dim);
+double** createMatrix(int n, int m);
 double** createSquareMatrix(int n);
+void printMatrix(double **matrix, int n, int m);
+void printMatrixDiagonal(double **matrix, int n);
 void freeMatrix(double **matrix, int n);
 void validateAction(int bool);
 void validateInput(int bool);
-
-
-
-double **createRegularMatrix(int rows, int columns);
-double **identityMatrix(int n);
-void printSymmetricMatrix(double **matrix, int n);
-void printMatrix(double **matrix, int rows, int columns);
-void printTransposedMatrix(double **matrix, int rows, int columns);
-void printDiagonal(double **matrix, int n);
-
-
-/* spk.c */
-double** spk(int k, double** vectorsMatrix, int N, int vectorDim);
-double **getEigenvectorsMatrix(double **matrix, int *kp, int n);
-EIGEN *getEigensArray(double **vectorsMatrix, double **valuesMatrix,
-                           int n);
-int eigengapHeuristic(EIGEN *eigenArray, int arrLength);
-void normalizeMatrix(double **matrix, int rows, int columns);
-double* getRootOfSumOfSquares(double **matrix, int rows, 
-                                        int columns);
-void descendingSort(EIGEN* eigenArray, int arrLength);
-
 
 /* wam.c */
 void wam(double** vectorsMatrix, int N, int vectorDim);
@@ -72,12 +53,22 @@ double** getLnorm(double *ddgDiagonal, double **wam, int N);
 void jacobi(double** matrix, int N, int vectorDim);
 double **jacobiAlgorithm(double **A, int n);
 double off(double **A, int n);
+double **createIdentityMatrix(int n);
 int matrixIsDiagonal(double **A, int n);
 void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj);
 void getCSOfP(double **A, int i, int j, double *cp, double *sp);
 void transformA(double **A, int n, int i, int j, double s, double c);
-void getCurrentEigenvectors(double **V, int n, int i, int j, double s,
-                           double c);
+void getCurrentV(double **V, int n, int i, int j, double s, double c);
+
+/* spk.c */
+double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix, 
+                                          int N, int vectorDim);
+EIGEN *createEigensArr(double **eigenVectors, double **eiganVals, int n);
+int eigengapHeuristic(EIGEN *eigenArray, int n);
+double** createT(EIGEN* eigens, int k, int N);
+void normalizeMatrixByRows(double **matrix, int row, int col);
+double* getNormalizeDenominators(double **matrix, int row, int col);
+void descendingSort(EIGEN* eigens, int n);
 
 /* kmeans */
 void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
@@ -90,7 +81,5 @@ double euclideanNorm(const double *datapoint1, const double *datapoint2,
                      int vectorDim);
 void printCentroids(CLUSTER *clusters, int vectorDim);
 void freeClusters(CLUSTER *clusters, int K);
-
-
 
 #endif

@@ -27,7 +27,7 @@ static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args) {
 
     int k, N, vectorDim;
     char *filename;
-    double** nkMatrix, vectorsMatrix;
+    double** T, vectorsMatrix;
     
     if (!PyArg_ParseTuple(args, "is", &k, &filename)) {
         return NULL;
@@ -37,39 +37,34 @@ static PyObject *spkWithoutKmeans(PyObject *self, PyObject *args) {
     vectorDim = getVectorDim(filename);
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
 
-    nkMatrix = spk(k, vectorsMatrix, N, vectorDim);
+    T = getNormalizedKEigenvectorsMatrix(k, vectorsMatrix, N, vectorDim);
 
-    return nkMatrixToPython(nkMatrix, N, k);
+    return sendMatrixToPython(T, N, k);
 }
 
 /*
 * Funcion: 
 * -----------------------------------------------------------------------------
-* Params: 
-* Action: 
-* Return: 
+* Params: Matrix and it's dimensions n*m
+* Action: Creates a PyObject matrix from input matrix
+* Return: PyObject matrix
 */
-static PyObject *nkMatrixToPython(double **nkMatrix, int N, int k) {
-    /* This functions receives a dynamic matrix with data points, the number of vectors
-    and the number of features. The function then returns a PyObject containing the
-    data points. */
-
-    PyObject *python_listOflist;
-    PyObject *python_list;
-    PyObject *python_val;
+static PyObject *sendMatrixToPython(double **matrix, int n, int m) {
+    PyObject *pyMatrix;
+    PyObject *pyList;
+    PyObject *pyVal;
     int i; int j;
-    python_listOflist = PyList_New(N);
 
-    for (i = 0; i < N; ++i) {
-        python_list = PyList_New(k);
-        for (j = 0; j < k; ++j) {
-            python_val = Py_BuildValue("d", nkMatrix[i][j]);
-            PyList_SetItem(python_list, j, python_val);
+    pyMatrix = PyList_New(N);
+    for (i = 0; i < n; ++i) {
+        pyList = PyList_New(k);
+        for (j = 0; j < m; ++j) {
+            pyVal = Py_BuildValue("d", matrix[i][j]);
+            PyList_SetItem(pyList, j, pyVal);
         }
-        PyList_SetItem(python_listOflist, i, python_list);
+        PyList_SetItem(pyMatrix, i, pyList);
     }
-
-    return python_listOflist;
+    return pyMatrix;
 }
 
 /*
@@ -83,15 +78,14 @@ static PyObject *goalsOtherThenSpk(PyObject *self, PyObject *args) {
     /* This function calls the appropriate function, per requested by the goal variable:
     wam, ddg, lnorm or jacobi. */
 
-    int k;
     char *goal;
     char *filename;
 
-    if (!PyArg_ParseTuple(args, "iss", &k, &goal, &filename)) {
+    if (!PyArg_ParseTuple(args, "ss", &goal, &filename)) {
         return NULL;
     }
 
-    runGoal(k, goal, filename);
+    runGoal(goal, filename);
     Py_RETURN_NONE;
 }
 

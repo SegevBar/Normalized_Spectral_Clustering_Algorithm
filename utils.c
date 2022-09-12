@@ -7,7 +7,7 @@
 
 
 /*
-* Funcion: 
+* Funcion: int getVectorDim(char *filename)
 * -----------------------------------------------------------------------------
 * Params: Input file
 * Action: Counts features in point
@@ -32,7 +32,7 @@ int getVectorDim(char *filename) {
 } 
 
 /*
-* Funcion: 
+* Funcion: int getVectorCount(char *filename)
 * -----------------------------------------------------------------------------
 * Params: Input file
 * Action: Counts number of vectors in file
@@ -58,7 +58,7 @@ int getVectorCount(char *filename) {
 }
 
 /*
-* Funcion: 
+* Funcion: double** getVectorsMatrix(char *filename, int N, int dim)
 * -----------------------------------------------------------------------------
 * Params: Input file, pointers to vectors amount and point size
 * Action: Reads vectors from inpuf file and save in metrix
@@ -93,7 +93,14 @@ double** getVectorsMatrix(char *filename, int N, int dim) {
     return vectorsMatrix;
 }
 
-double** createSquareMatrix(int n) {
+/*
+* Funcion: double** createMatrix(int n, int m)
+* -----------------------------------------------------------------------------
+* Params: rows and columns number 
+* Action: Allocate memory to zeros matrix n*m
+* Return: Matrix
+*/
+double** createMatrix(int n, int m) {
     int i;
     double** matrix;
 
@@ -101,83 +108,25 @@ double** createSquareMatrix(int n) {
     matrix = (double**) calloc(n, sizeof(*matrix));
     validateAction(matrix != NULL);
     for(i = 0; i < n; i++){
-        matrix[i] = (double*) calloc(n ,sizeof(*matrix[i]));
+        matrix[i] = (double*) calloc(m ,sizeof(*matrix[i]));
         validateAction(matrix[i] != NULL);
     }
     return matrix;
 }
 
 /*
-* Funcion: 
+* Funcion: double** createSquareMatrix(int n)
 * -----------------------------------------------------------------------------
-* Params: rows and columns number 
-* Action: Create empty matrix
+* Params: Matrix dimension
+* Action: Allocate memory to zeros square matrix n*n
 * Return: Matrix
 */
-double **createRegularMatrix(int rows, int columns) {
-
-    int i;
-    double *array;
-    double **matrix;
-
-    array = (double *) calloc(rows * columns, sizeof(double));
-    validateAction(array != NULL);
-    matrix = (double **) calloc(rows, sizeof(double *));
-    validateAction(matrix != NULL);
-
-    for (i = 0; i < rows; i++) {
-        matrix[i] = array + i * columns;
-    }
-    return matrix;
+double** createSquareMatrix(int n) {
+    return createMatrix(n, n);
 }
 
 /*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Length of squared identity matrix
-* Action: Create identity matrix
-* Return: Identity matrix
-*/
-double **createIdentityMatrix(int n) {
-
-    int i;
-    double **matrix;
-    matrix = createSquareMatrix(n); /* allocate memory */
-    for (i = 0; i < n; i++) {
-        matrix[i][i] = 1;
-    }
-    return matrix;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Symmetric Matrix, Matrix size (1D)
-* Action: Prints matrix
-* Return: None
-*/
-void printSymmetricMatrix(double **matrix, int n) {
-    int i;
-    int j;
-
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            if (i < j) {
-                printf("%.4f", round(matrix[j][i]));
-            } else {
-                printf("%.4f", round(matrix[i][j]));
-            }
-            if (j != n - 1) {
-                printf(",");
-            } else {
-                printf("\n");
-            }
-        }
-    }
-}
-
-/*
-* Funcion: 
+* Funcion: void printMatrix(double **matrix, int n, int m)
 * -----------------------------------------------------------------------------
 * Params: Matrix, Matrix size (2D)
 * Action: Prints matrix
@@ -200,54 +149,29 @@ void printMatrix(double **matrix, int n, int m) {
 }
 
 /*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: Matrix, Matrix size (2D)
-* Action: Prints transposed matrix
-* Return: None
-*/
-void printTransposedMatrix(double **matrix, int rows, int columns) {
-
-    int i;
-    int j;
-    for (j = 0; j < columns; j++) {
-        for (i = 0; i < rows; i++) {
-            if (i != rows - 1) {
-                printf("%.4f,", round(matrix[i][j]));
-            } else {
-                if (j != columns - 1) {
-                    printf("%.4f\n", round(matrix[i][j]));
-                } else {
-                    printf("%.4f", round(matrix[i][j]));
-                }
-            }
-        }
-    }
-}
-
-/*
-* Funcion: 
+* Funcion: void printMatrixDiagonal(double **matrix, int n)
 * -----------------------------------------------------------------------------
 * Params: Matrix, Matrix size (1D)
 * Action: Prints the transposed matrix
 * Return: None
 */
-void printDiagonal(double **matrix, int n) {
-
+void printMatrixDiagonal(double **matrix, int n) {
     int i;
+    
     for (i = 0; i < n; i++) {
-        if (i != n - 1) {
-            printf("%.4f,", round(matrix[i][i]));
+        printf("%.4f", round(matrix[i][i]));
+        if (i != n-1) {
+            printf(",");
         } else {
-            printf("%.4f\n", round(matrix[i][i]));
+            printf("\n");
         }
     }
 }
 
 /*
-* Funcion: 
+* Funcion: void freeMatrix(double **matrix, int n)
 * -----------------------------------------------------------------------------
-* Params: Matrix
+* Params: Matrix, Matrix lines amount
 * Action: Frees matrix memory
 * Return: None
 */

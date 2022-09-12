@@ -31,9 +31,8 @@ void wam(double** vectorsMatrix, int N, int vectorDim) {
 */
 double **getWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
                                        int vectorDim) {
-    double **wam;
+    double **wam, wij, norm;
     int i, j;
-    double wij, norm;
     
     wam = createSquareMatrix(N); /* allocate memory */
     for(i = 0; i < N; i++){
