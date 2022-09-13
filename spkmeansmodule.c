@@ -32,7 +32,7 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
     int k, N, vectorDim;
     char *filename;
     double **T, **vectorsMatrix;
-    
+    printf("at func\n");
     /* Parses arguments from python */
     if (!PyArg_ParseTuple(args, "is", &k, &filename)) {
         return NULL;
@@ -292,15 +292,15 @@ static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k) {
 /* API */ 
 static PyMethodDef _methods[] = {
     {"runKmeansFromCProgram",
-            (PyCFunction) runKmeansFromCProgram,
+            (PyCFunction)runKmeansFromCProgram,
             METH_VARARGS,
             PyDoc_STR("Performs k-means algorithm")},
     {"getPythonNormalizedKEigenvectorsMatrix",
-            (PyCFunction) getPythonNormalizedKEigenvectorsMatrix,
+            (PyCFunction)getPythonNormalizedKEigenvectorsMatrix,
             METH_VARARGS,
             PyDoc_STR("Calculates Normalized K Eigenvectors Matrix")},
     {"runGoalOfCProgram",
-            (PyCFunction) runGoalOfCProgram,
+            (PyCFunction)runGoalOfCProgram,
             METH_VARARGS,
             PyDoc_STR("Performs wam, ddg, lnorm or jacobi steps")},
     {NULL, NULL, 0, NULL} 
