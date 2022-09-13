@@ -8,8 +8,8 @@ module = Extension("spkmeansmodule",
                     'wam.c',
                     'ddg.c',
                     'lnorm.c',
-                    'jacobi.c'
-                    'utils.c'
+                    'jacobi.c',
+                    'utils.c',
                     'normalizedKEigenvectorsMatrix.c'
                   ])
 setup(name='spkmeansmodule',
