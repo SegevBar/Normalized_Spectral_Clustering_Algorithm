@@ -153,7 +153,7 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
 * Action: Performs kmeans main loop
 * Return: pyObject matrix of calculated centroids
 */
-static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, int k, int N) {
+static PyObject *kmeans(PyObject *vectors_py, CLUSTER *clusters, int k, int N) {
     double epsilon = 0;
     double *curr_vector;
     int cnt, i, j, curr;
