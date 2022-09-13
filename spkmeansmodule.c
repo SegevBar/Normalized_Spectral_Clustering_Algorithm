@@ -44,7 +44,8 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
     printf("k = %d\n", k);
     printMatrix(vectorsMatrix, N, vectorDim);
-    T = getNormalizedKEigenvectorsMatrix(k, vectorsMatrix, N, vectorDim);
+    T = getNormalizedKEigenvectorsMatrix(&k, vectorsMatrix, N, vectorDim);
+    printf("k = %d\n", k);
     printMatrix(T, N, k);
     return sendMatrixToPython(T, N, k);
 }

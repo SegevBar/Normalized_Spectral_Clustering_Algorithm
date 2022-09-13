@@ -60,7 +60,7 @@ void transformA(double **A, int n, int i, int j, double s, double c);
 void getCurrentV(double **V, int n, int i, int j, double s, double c);
 
 /* spk.c */
-double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix, 
+double** getNormalizedKEigenvectorsMatrix(int *kp, double** vectorsMatrix, 
                                           int N, int vectorDim);
 EIGEN *createEigensArr(double **eiganVals, int n);
 int eigengapHeuristic(EIGEN *eigenArray, int n);

@@ -6,18 +6,20 @@
 #include "spkmeans.h"
 
 /*
-* Funcion: double** getNormalizedKEigenvectorsMatrix(int k, double** 
-*          vectorsMatrix, int N, int vectorDim)
+* Funcion: double** getNormalizedKEigenvectorsMatrix(int *kp, 
+*          double** vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: k, Vectors matrix, Vector count, Vector dimension
+* Params: k pointer, Vectors matrix, Vector count, Vector dimension
 * Action: performs The Normalized Spectral Clustering Algorithm *WITHOUT*
 *         kmeans (first step executes at python program)
 * Return: Normalized K Eigenvectors Matrix (T)
 */
-double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix, 
+double** getNormalizedKEigenvectorsMatrix(int *kp, double** vectorsMatrix, 
                                           int N, int vectorDim) {
     double **wam, *ddgDiagonal, **lnorm, **eigenVecMatrix, **T;
     EIGEN* eigens;
+
+    int k = *kp;
 
     wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
@@ -33,7 +35,7 @@ double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix,
     freeMatrix(lnorm, N);
     
     descendingSort(eigens, N); /*sort eigans from largest to smallest*/
-    k = (k == 0) ? eigengapHeuristic(eigens, N) : k;
+    *kp = (k == 0) ? eigengapHeuristic(eigens, N) : k;
 
     T = createT(eigens, eigenVecMatrix, k, N);
     freeMatrix(eigenVecMatrix, N);
