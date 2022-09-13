@@ -60,7 +60,7 @@ def spk(k, filename):
     # init parameters and run kmeans from C program
     kmeansArgs = getArgsForKmeans(vectorsArray, centroids)
     kmeansCentroids = spkmeansmodule.runKmeansFromCProgram(\
-        kmeansArgs[0],kmeansArgs[1], kmeansArgs[2], kmeansArgs[3])
+        kmeansArgs[0],kmeansArgs[1], n, vectorDim)
     
     printClusters(chosenKCentroidsIndexs, kmeansCentroids)
 

@@ -127,11 +127,13 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
     int i, j, curr;
       
     clusters = (CLUSTER *)calloc(k, sizeof(CLUSTER));
+    printf("1\n");
     validateAction(clusters == NULL);
 
     curr = 0;
     for (i = 0; i < k; i++) {
         clusters[i].centroid = (double *)calloc(k, sizeof(double));
+        printf("2\n");
         validateAction(clusters[i].centroid == NULL);
 
         for (j = 0; j < k; j++) {
@@ -141,6 +143,7 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
 
         clusters[i].vectors_count = 0;
         clusters[i].vectors_sum = (double *)calloc(k, sizeof(double));
+        printf("3\n");
         validateAction(clusters[i].vectors_sum == NULL);
     }
     return clusters;
