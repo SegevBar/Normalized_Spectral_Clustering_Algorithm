@@ -19,8 +19,6 @@ double** getNormalizedKEigenvectorsMatrix(int *kp, double** vectorsMatrix,
     double **wam, *ddgDiagonal, **lnorm, **eigenVecMatrix, **T;
     EIGEN* eigens;
 
-    int k = *kp;
-
     wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
     
@@ -35,9 +33,9 @@ double** getNormalizedKEigenvectorsMatrix(int *kp, double** vectorsMatrix,
     freeMatrix(lnorm, N);
     
     descendingSort(eigens, N); /*sort eigans from largest to smallest*/
-    *kp = (k == 0) ? eigengapHeuristic(eigens, N) : k;
+    *kp = (*kp == 0) ? eigengapHeuristic(eigens, N) : *kp;
 
-    T = createT(eigens, eigenVecMatrix, k, N);
+    T = createT(eigens, eigenVecMatrix, *kp, N);
     freeMatrix(eigenVecMatrix, N);
 
     return T;
