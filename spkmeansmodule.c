@@ -129,13 +129,13 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
     printf("k = %d\n", k);
     clusters = (CLUSTER *)calloc(k, sizeof(CLUSTER));
     printf("1\n");
-    validateAction(clusters == NULL);
+    validateAction(clusters != NULL);
 
     curr = 0;
     for (i = 0; i < k; i++) {
         clusters[i].centroid = (double *)calloc(k, sizeof(double));
         printf("2\n");
-        validateAction(clusters[i].centroid == NULL);
+        validateAction(clusters[i].centroid != NULL);
 
         for (j = 0; j < k; j++) {
             clusters[i].centroid[j] = PyFloat_AsDouble(PyList_GetItem(pyCentroids, curr));
@@ -145,7 +145,7 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
         clusters[i].vectors_count = 0;
         clusters[i].vectors_sum = (double *)calloc(k, sizeof(double));
         printf("3\n");
-        validateAction(clusters[i].vectors_sum == NULL);
+        validateAction(clusters[i].vectors_sum != NULL);
     }
     return clusters;
 }
@@ -171,7 +171,7 @@ static PyObject *kmeans(PyObject *vectors_py, CLUSTER *clusters, int k, int N) {
         /*find current vector cluster*/
         for (i = 0; i < N; i++) {
             curr_vector = (double*)calloc(k, sizeof(double));
-            validateAction(curr_vector == NULL);
+            validateAction(curr_vector != NULL);
 
             for (j = 0; j < k; j++) {
                 curr_vector[j] = PyFloat_AsDouble(
@@ -241,7 +241,7 @@ int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon) {
     /*calculate new centroid*/
     for (i = 0; i < k; i++) {
         new_centroid = (double*)calloc(dim, sizeof(double));
-        validateAction(new_centroid == NULL);
+        validateAction(new_centroid != NULL);
 
         for (j = 0; j < dim; j++) {
             new_centroid[j] = (clusters[i].vectors_sum[j]/
