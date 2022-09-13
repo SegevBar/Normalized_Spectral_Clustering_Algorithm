@@ -40,6 +40,7 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
     /* create matrix of vectors from file data points */
     N = getVectorCount(filename);
     vectorDim = getVectorDim(filename);
+    printf("C: N = %d, dim = %d\n", N, vectorDim);
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
 
     T = getNormalizedKEigenvectorsMatrix(k, vectorsMatrix, N, vectorDim);
