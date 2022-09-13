@@ -21,7 +21,7 @@ def main():
         k = int(sys.argv[1])
     except:
         validateInput(False)
-    validateInput('.' in str(k) or int(k) <= 0)
+    validateInput('.' in str(k) or int(k) < 0)
 
     # get goal and filename
     goal = sys.argv[2]
