@@ -40,13 +40,10 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
     /* create matrix of vectors from file data points */
     N = getVectorCount(filename);
     vectorDim = getVectorDim(filename);
-    printf("befor matrix init\n");
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
-    printf("k = %d\n", k);
-    printMatrix(vectorsMatrix, N, vectorDim);
+
     T = getNormalizedKEigenvectorsMatrix(&k, vectorsMatrix, N, vectorDim);
-    printf("k = %d\n", k);
-    printMatrix(T, N, k);
+
     return sendMatrixToPython(T, N, k);
 }
 
@@ -109,8 +106,7 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     int k, N;
 
     /* Parses arguments from python */
-    if (!PyArg_ParseTuple(args, "00ii", &pyVectors, &pyCentroids, 
-                                                                &N, &k)) {
+    if (!PyArg_ParseTuple(args, "00ii", &pyVectors, &pyCentroids, &N, &k)) {
         return NULL;
     }
 
