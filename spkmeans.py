@@ -1,3 +1,4 @@
+from turtle import shape
 import numpy as np
 import sys
 import spkmeansmodule
@@ -50,6 +51,7 @@ def spk(k, filename):
     
     # init parameters and run kmeans++
     vectorsArray = np.array(vectorsMatrix)
+    print(np.shape(vectorsArray))
     centroids = np.array([[0.0 for i in range(k)] 
     for i in range(k)])
     chosenKCentroidsIndexs = kmeanspp(vectorsArray, centroids)
