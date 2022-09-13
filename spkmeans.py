@@ -45,7 +45,8 @@ def spk(k, filename):
     Return: Prints indexes of initial centroids and calculated centroids
     '''
     # The function performs the normalizedSpectralClustering algorithm
-    vectorsMatrix = spkmeansmodule.getPythonNormalizedKEigenvectorsMatrix(k, filename)
+    vectorsMatrix = spkmeansmodule.getPythonNormalizedKEigenvectorsMatrix\
+        (k, filename)
     
     # init parameters and run kmeans++
     vectorsArray = np.array(vectorsMatrix)
@@ -58,8 +59,8 @@ def spk(k, filename):
     
     # init parameters and run kmeans from C program
     kmeansArgs = getArgsForKmeans(vectorsArray, centroids)
-    kmeansCentroids = spkmeansmodule.runKmeansFromCProgram(kmeansArgs[0],
-    kmeansArgs[1], kmeansArgs[2], kmeansArgs[3])
+    kmeansCentroids = spkmeansmodule.runKmeansFromCProgram\
+        (kmeansArgs[0],kmeansArgs[1], kmeansArgs[2], kmeansArgs[3])
     
     printClusters(chosenKCentroidsIndexs, kmeansCentroids)
 
