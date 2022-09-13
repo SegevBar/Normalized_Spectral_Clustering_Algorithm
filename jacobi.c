@@ -47,7 +47,7 @@ double **jacobiAlgorithm(double **A, int n) {
         getIJOfLargestOffDiag(A, n, &i, &j); /*updates i j via pointers*/
         getCSOfP(A, i, j, &c, &s); /*updates s c via pointers*/
         transformA(A, n, i, j, s, c); 
-        getCurrentV(V, n, i, j, s, c);
+        V = getCurrentV(V, n, i, j, s, c);
         
         /* check convergence */
         offAt = off(A, n);
@@ -154,7 +154,7 @@ void getCSOfP(double **A, int i, int j, double *cp, double *sp) {
     int sign;
 
     /* theta = (Ajj-Aii)/(2Ajj) */
-    theta = (A[i][i] - A[j][j]) / (2 * A[i][j]);
+    theta = (A[j][j] - A[i][i]) / (2 * A[i][j]);
     /* t = sign(theta)/(|thetha|+sqrt((theta)^2+1) */
     sign = (theta >= 0) ? 1 : -1;
     t = sign / (fabs(theta) + sqrt(pow(theta, 2) + 1));
@@ -182,6 +182,7 @@ void transformA(double **A, int n, int i, int j, double s, double c) {
     
     /* a'ij = 0 */  
     A[i][j] = 0;
+    A[j][i] = 0;
     /* a'ii = c^2*aii + s^2*ajj - 2*s*c*aij */
     A[i][i] = pow(c, 2) * Aii + pow(s, 2) * Ajj - 2 * s * c * Aij;
     /* a'jj = s^2*aii + c^2*ajj + 2*s*c*aij */
@@ -193,30 +194,51 @@ void transformA(double **A, int n, int i, int j, double s, double c) {
             Ari = A[r][i];
             Arj = A[r][j];
             /* a'ri = c*ari - s*arj */
-            A[r][i] = c * Ari + s * Arj;
+            A[r][i] = c * Ari - s * Arj;
+            A[i][r] = A[r][i];
             /* a'rj = c*arj + s*ari */
-            A[r][j] = c * Arj - s * Ari;
+            A[r][j] = c * Arj + s * Ari;
+            A[j][r] = A[r][j];
         }
     }
     
 }
 
 /*
-* Funcion: void getCurrentV(double **V, int n, int i, int j, double s, double c)
+* Funcion: double **getCurrentV(double **V, int n, int i, int j, double s,
+*          double c)
 * -----------------------------------------------------------------------------
 * Params: Eigenvectors matrix (V) and it's dimension (1D), indexes of max 
 *         off-diagonal value, s, c
 * Action: Multiplies current V matrix with the new P
 * Return: None
 */
-void getCurrentV(double **V, int n, int i, int j, double s, double c) {
-    int k;
-    double Vki, Vkj;
+double **getCurrentV(double **V, int n, int i, int j, double s, double c) {
+    int k, a, b;
+    double **P, **newV;
+    double sum;
 
-    for (k = 0; k < n; k++) {
-        Vki = V[k][i];
-        Vkj = V[k][j];
-        V[k][i] = Vkj * s + Vki * c;
-        V[k][j] = Vkj * c + Vki * -s;
+    /* create P matrix */
+    P = createIdentityMatrix(n);
+    P[i][i] = c;
+    P[j][j] = c;
+    P[i][j] = s;
+    P[j][i] = -s;
+    
+    /* duplicate matrixes newV = V*P */
+    newV = createSquareMatrix(n);
+    for (a = 0; a < n; a++) {
+        for (b = 0; b < n; b++) {
+            sum = 0;
+            for (k = 0; k < n; k++) {
+                sum += V[a][k] * P[k][b];
+            }
+            newV[a][b] = sum;
+        }
     }
+
+    freeMatrix(P, n);
+    freeMatrix(V, n);
+
+    return newV;
 }

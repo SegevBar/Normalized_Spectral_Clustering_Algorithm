@@ -57,7 +57,7 @@ int matrixIsDiagonal(double **A, int n);
 void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj);
 void getCSOfP(double **A, int i, int j, double *cp, double *sp);
 void transformA(double **A, int n, int i, int j, double s, double c);
-void getCurrentV(double **V, int n, int i, int j, double s, double c);
+double **getCurrentV(double **V, int n, int i, int j, double s, double c);
 
 /* spk.c */
 double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix, 
