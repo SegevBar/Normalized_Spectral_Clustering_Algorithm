@@ -31,7 +31,7 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
                                                         PyObject *args) {
     int k, N, vectorDim;
     char *filename;
-    double** T, vectorsMatrix;
+    double **T, **vectorsMatrix;
     
     /* Parses arguments from python */
     if (!PyArg_ParseTuple(args, "is", &k, &filename)) {
@@ -78,9 +78,9 @@ static PyObject *sendMatrixToPython(double **matrix, int n, int m) {
     int i; int j;
 
     /* parse C matrix to python matrix */
-    pyMatrix = PyList_New(N);
+    pyMatrix = PyList_New(m);
     for (i = 0; i < n; ++i) {
-        pyList = PyList_New(k);
+        pyList = PyList_New(n);
         for (j = 0; j < m; ++j) {
             pyVal = Py_BuildValue("d", matrix[i][j]);
             PyList_SetItem(pyList, j, pyVal);
@@ -111,9 +111,7 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     }
 
     clusters = initPyClusters(pyCentroids, k);    
-    kmeans(pyVectors, clusters, k, N);
-
-    Py_RETURN_NONE;
+    return kmeans(pyVectors, clusters, k, N);
 }
 
 /*
@@ -190,7 +188,7 @@ static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, int k, int N) {
         }
         cnt++;
     }
-    return sendCentroidsToPython(clusters, k, k);
+    return sendCentroidsToPython(clusters, k);
 }
 
 /*
@@ -271,7 +269,7 @@ static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k) {
     clusters_py = PyList_New(k);
     for (i = 0; i < k; i++) {
         curr_vector = PyList_New(k);
-        for (j = 0; j < dim; j++) {
+        for (j = 0; j < k; j++) {
             value = Py_BuildValue("d", clusters[i].centroid[j]);
             PyList_SetItem(curr_vector, j, value);
         }
