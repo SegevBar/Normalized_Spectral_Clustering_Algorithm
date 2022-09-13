@@ -1,6 +1,6 @@
 import numpy as np
-import spkmeansmodule
 import sys
+import spkmeansmodule
 
 
 def main():

@@ -6,13 +6,16 @@
 /* spkmeansmodule.c */
 static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self, 
                                                         PyObject *args);
-static PyObject *sendMatrixToPython(double **matrix, int n, int m);
 static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args);
+static PyObject *sendMatrixToPython(double **matrix, int n, int m);
 static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args);
-static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N, 
-                                    int vectorDim);
-static CLUSTER *pythonInitializeClusters(PyObject *pythonClusters, int N);
-static void pythonInitCluster(CLUSTER *curCluster, int vectorDim);
+static CLUSTER *initPyClusters(PyObject *pyCentroids, int k);
+static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, int k, int N);
+void calcCluster(double* vector, CLUSTER* clusters, int k, int dim);
+double calcDistance(double* vector1, double* vector2, int dim);
+int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon);
+static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k);
+
 
 /*
 * Funcion: static PyObject *getPythonNormalizedKEigenvectorsMatrix(
@@ -43,6 +46,25 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
 }
 
 /*
+* Funcion: static PyObject *runGoalofCProgram(PyObject *self, PyObject *args)
+* -----------------------------------------------------------------------------
+* Params: goal and filename from python program
+* Action: Parses arguments from python and runs goal from c program
+*         Goals: wam, ddg, lnorm, jacobi
+* Return: None
+*/
+static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args) {
+    char *goal, *filename;
+
+    /* Parses arguments from python */
+    if (!PyArg_ParseTuple(args, "ss", &goal, &filename)) {
+        return NULL;
+    }
+    runGoal(goal, filename); /* runs goal from C program*/
+    Py_RETURN_NONE;
+}
+
+/*
 * Funcion: static PyObject *sendMatrixToPython(double **matrix, int n, int m)
 * -----------------------------------------------------------------------------
 * Params: Matrix and it's dimensions n*m
@@ -63,26 +85,8 @@ static PyObject *sendMatrixToPython(double **matrix, int n, int m) {
         }
         PyList_SetItem(pyMatrix, i, pyList);
     }
+    freeMatrix(matrix, n);
     return pyMatrix;
-}
-
-/*
-* Funcion: static PyObject *runGoalofCProgram(PyObject *self, PyObject *args)
-* -----------------------------------------------------------------------------
-* Params: goal and filename from python program
-* Action: Parses arguments from python and runs goal from c program
-*         Goals: wam, ddg, lnorm, jacobi
-* Return: None
-*/
-static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args) {
-    char *goal, *filename;
-
-    /* Parses arguments from python */
-    if (!PyArg_ParseTuple(args, "ss", &goal, &filename)) {
-        return NULL;
-    }
-    runGoal(goal, filename); /* runs goal from C program*/
-    Py_RETURN_NONE;
 }
 
 /*
@@ -94,69 +98,32 @@ static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args) {
 * Return: None
 */
 static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
-    PyObject *pythonVectors, *pythonCentroids;
+    PyObject *pyVectors, *pyCentroids;
     CLUSTER *clusters;
     int k, N;
-    double **vectorsMatrix;
 
     /* Parses arguments from python */
-    if (!PyArg_ParseTuple(args, "00ii", &pythonVectors, &pythonClusters, &N, 
-    &k)) {
+    if (!PyArg_ParseTuple(args, "00ii", &pyVectors, &pyCentroids, 
+                                                                &N, &k)) {
         return NULL;
     }
-    /* parse N, data points matrix and cluster from python to c */
-    vectorsMatrix = getVectorsFromPython(pythonVectors, N, k);
-    clusters = pythonInitializeClusters(pythonClusters, k);
-    
-    kmeans(clusters, vectorsMatrix, k, N);
+
+    clusters = initPyClusters(pyCentroids, k);    
+    kmeans(pyVectors, clusters, k, N);
 
     Py_RETURN_NONE;
 }
 
 /*
-* Funcion: static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, 
-*          int N, int vectorDim)
+* Funcion: static CLUSTER *initPyClusters(PyObject *pyCentroids, int k)
 * -----------------------------------------------------------------------------
-* Params: Python matrix and it's dimension
-* Action: Creates C vectors matrix based on Python matrix
-* Return: C vectors matrix
+* Params: pyObject of list of centroids, k
+* Action: Init clusters with centroids from kmeans++ 
+* Return: pointer to array of clusters
 */
-static double **getVectorsFromPython(PyObject *pythonVectorsMatrix, int N, 
-                                    int vectorDim) {
-    double **vectorsMatrix;
-    int i, j;
-    PyObject *pyVector;
-
-    vectorsMatrix = createMatrix(N, vectorDim);
-    /* fill matrix with python matrix values */
-    for (i = 0; i < N; i++) {
-        pyVector = PyList_GetItem(pythonVectorsMatrix, i);
-        for (j = 0; j < vectorDim; j++) {
-            vectorsMatrix[i][j] = PyFloat_AsDouble(PyList_GetItem(pyVector, j));
-        }
-    }
-    return vectorsMatrix;
-}
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: 
-* Action: 
-* Return: 
-*/
-static CLUSTER *pythonInitializeClusters(PyObject *pyClusters, int k) {
-    /* This function gets a python object containing the clusters and the number
-    of features. The function then copies the clusters into a struct array,
-    CLUSTERS, initializes it and returns the array. */
-
+static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
     CLUSTER *clusters;
-    double *curr_vector;
-    int has_converged = 0;
-    int cnt = 0;
-    int i = 0;
-    int j = 0;
-    int curr = 0;
+    int i, j, curr;
       
     clusters = (CLUSTER *)calloc(k, sizeof(CLUSTER));
     validateAction(clusters == NULL);
@@ -167,121 +134,190 @@ static CLUSTER *pythonInitializeClusters(PyObject *pyClusters, int k) {
         validateAction(clusters[i].centroid == NULL);
 
         for (j = 0; j < k; j++) {
-            clusters[i].centroid[j] = PyFloat_AsDouble(PyList_GetItem(centroids_py, curr));
+            clusters[i].centroid[j] = PyFloat_AsDouble(PyList_GetItem(pyCentroids, curr));
             curr++;
         }
 
         clusters[i].vectors_count = 0;
-        clusters[i].vectors_sum = (double *)calloc(vectorDim, sizeof(double));
+        clusters[i].vectors_sum = (double *)calloc(k, sizeof(double));
         validateAction(clusters[i].vectors_sum == NULL);
-
     }
     return clusters;
 }
 
 /*
-* Funcion: 
+* Funcion: static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, 
+*          int k, int N)
 * -----------------------------------------------------------------------------
-* Params: 
-* Action: 
-* Return: 
+* Params: pyObject of list of data points, clusters array, k, N
+* Action: Performs kmeans main loop
+* Return: pyObject matrix of calculated centroids
 */
-static void pythonInitCluster(CLUSTER *curCluster, int vectorDim) {
-    /* This function receives a specific cluster struct pointer and the number
-    of features. The function then initializes the values that are related to the
-    cluster struct */
-
-    curCluster -> centroid_closest = calloc(vectorDim, sizeof(double));
-    validateAction(curCluster -> centroid_closest != NULL);
-
-    curCluster -> size = 0;
-    curCluster -> equalTolLast = 0; // 0 == False
-}
-
-
-/*
-* Funcion: 
-* -----------------------------------------------------------------------------
-* Params: 
-* Action: 
-* Return: 
-*/
-static PyObject *kmeans(int k, int max_iter_py, double epsilon_py, int dim_py, int N_py, PyObject *centroids_py, PyObject *vectors_py) {
-    int N = N_py;
-    int max_iter = max_iter_py;
-    double epsilon = epsilon_py;
-    int dim = dim_py;
-    Cluster *clusters;
+static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, int k, int N) {
+    double epsilon = 0;
     double *curr_vector;
+    int cnt, i, j, curr;
     int has_converged = 0;
-    int cnt = 0;
-    int i = 0;
-    int j = 0;
-    int curr = 0;
 
-    /*convert k centroids from python to C*/
-    
-
-    /*main loop*/
+    /* kmeans main loop */
     cnt = 0;
-    while ((cnt < max_iter) && (!has_converged))
-    {
+    while ((cnt < MAX_ITER_KMEANS) && (!has_converged)) {
         curr = 0;
-
         /*find current vector cluster*/
-        for (i = 0; i < N; i++)
-        {
-            curr_vector = (double*)calloc(dim, sizeof(double));
-            if (curr_vector == NULL)
-            {
-                printf("An Error Has Occurred\n");
-                exit(1);
-            }
-            for (j = 0; j < dim; j++)
-            {
-                curr_vector[j] = PyFloat_AsDouble(PyList_GetItem(vectors_py, curr));
+        for (i = 0; i < N; i++) {
+            curr_vector = (double*)calloc(k, sizeof(double));
+            validateAction(curr_vector == NULL);
+
+            for (j = 0; j < k; j++) {
+                curr_vector[j] = PyFloat_AsDouble(
+                                        PyList_GetItem(vectors_py, curr));
                 curr++;
             }
-            calcCluster(curr_vector, clusters, k, dim);
+            calcCluster(curr_vector, clusters, k, k);
             free(curr_vector);
         }
-        
         /*update centroids*/
-        has_converged = updateCentroids(clusters, k, dim, epsilon);
+        has_converged = updateCentroids(clusters, k, k, epsilon);
         
         /*reset*/
-        for(i = 0; i < k; i++)
-        {
+        for(i = 0; i < k; i++) {
             clusters[i].vectors_count = 0;
-            for(j = 0; j < dim; j++)
-            {
+            for(j = 0; j < k; j++) {
                 clusters[i].vectors_sum[j] = 0;
             }
         }
         cnt++;
     }
-
-    return cToPyObject(clusters, k, dim, N);
+    return sendCentroidsToPython(clusters, k, k);
 }
 
+/*
+* Funcion: void calcCluster(double* vector, CLUSTER* clusters, int k, int dim)
+* -----------------------------------------------------------------------------
+* Params: a vector, clusters array, k and vector dimension
+* Action: Finds closest cluster to current vector and update closest cluster
+* Return: None
+*/
+void calcCluster(double* vector, CLUSTER* clusters, int k, int dim) {
+    double min_distance = -1.0;
+    int closest_cluster = -1;
+    double distance;
+    int i, j;
+
+    /*find closest cluster to current vector*/
+    for (i = 0; i < k; i++) {
+        distance = calcDistance(vector, clusters[i].centroid, dim);
+        if ((distance < min_distance) || (min_distance < 0)) {
+            min_distance = distance; 
+            closest_cluster = i;
+        }
+    }
+    /*update closest cluster*/
+    clusters[closest_cluster].vectors_count++; 
+    for (j = 0; j < dim; j++) {
+        clusters[closest_cluster].vectors_sum[j] += vector[j];
+    }
+}
+
+/*
+* Funcion: double calcDistance(double* vector1, double* vector2, int dim)
+* -----------------------------------------------------------------------------
+* Params: 2 vectors of the same dimension and dimension
+* Action: Calculates res = sum(xi-v)^2 i=0,..,k-1
+* Return: res
+*/
+double calcDistance(double* vector1, double* vector2, int dim) {
+    double sum = 0.0;
+    int j = 0;
+
+    for (j = 0; j < dim; j++) {
+        sum += (vector1[j]-vector2[j])*(vector1[j]-vector2[j]);
+    } 
+    return sum;
+}
+
+/*
+* Funcion: updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon)
+* -----------------------------------------------------------------------------
+* Params: clusters array, k, vector dimension and epsilon
+* Action: Calculates new centroid from clusters (vectors sum)/(vectors count)
+*         and checks convergence
+* Return: boolean representing convergence (1-yes, 0-no)
+*/
+int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon) {
+    int i, j;
+    int has_converged = 1;
+    double* new_centroid = NULL;
+    double dist = 0;
+
+    /*calculate new centroid*/
+    for (i = 0; i < k; i++) {
+        new_centroid = (double*)calloc(dim, sizeof(double));
+        validateAction(new_centroid == NULL);
+
+        for (j = 0; j < dim; j++) {
+            new_centroid[j] = (clusters[i].vectors_sum[j]/
+                               clusters[i].vectors_count);
+        }
+        dist = sqrt(calcDistance(clusters[i].centroid, new_centroid, dim));
+
+        /*check if convergence did not accured*/
+        has_converged = (dist >= epsilon) ? 0 : 1;
+
+        /*update centroid*/
+        memcpy(clusters[i].centroid, new_centroid, sizeof(double)*dim);
+
+        free(new_centroid);
+    }
+    return has_converged;
+}
+
+/*
+* Funcion: static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k)
+* -----------------------------------------------------------------------------
+* Params: clusters array, k
+* Action: Converts centroids from C to python
+* Return: pyObject matrix of calculated centroids
+*/
+static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k) {
+    PyObject *clusters_py, *value, *curr_vector;
+    int i, j;
+
+    clusters_py = PyList_New(k);
+    for (i = 0; i < k; i++) {
+        curr_vector = PyList_New(k);
+        for (j = 0; j < dim; j++) {
+            value = Py_BuildValue("d", clusters[i].centroid[j]);
+            PyList_SetItem(curr_vector, j, value);
+        }
+        /*add PyObject centroid to PyList clusters*/
+        PyList_SetItem(clusters_py, i, curr_vector);
+    }
+    /*free clusters memory*/
+    for (i = 0; i < k; i++) {
+        free(clusters[i].centroid);
+        free(clusters[i].vectors_sum);
+    }
+    free(clusters);
+    
+    return clusters_py;
+}
 
 
 /* API */ 
 static PyMethodDef _methods[] = {
-    {"kmeans",
-            (PyCFunction) kmeans,
-                METH_VARARGS,
-                    PyDoc_STR("find a partition of N unlabeled observations in k distinct "
-                              "clusters using the k-means algorith")},
-    {"spkWithoutKmeans",
-            (PyCFunction) spkWithoutKmeans,
-                METH_VARARGS,
-                    PyDoc_STR("perform normalized spectral clustering without  "
-                              "k-means level")},
-    {"goalsOtherThenSpk",
-            (PyCFunction) goalsOtherThenSpk,
-                METH_VARARGS,
-                    PyDoc_STR("perform wam, ddg, lnorm or jacobi")},
+    {"runKmeansFromCProgram",
+            (PyCFunction) runKmeansFromCProgram,
+            METH_VARARGS,
+            PyDoc_STR("Performs k-means algorithm")},
+    {"getPythonNormalizedKEigenvectorsMatrix",
+            (PyCFunction) getPythonNormalizedKEigenvectorsMatrix,
+            METH_VARARGS,
+            PyDoc_STR("Calculates Normalized K Eigenvectors Matrix")},
+    {"runGoalOfCProgram",
+            (PyCFunction) runGoalOfCProgram,
+            METH_VARARGS,
+            PyDoc_STR("Performs wam, ddg, lnorm or jacobi steps")},
     {NULL, NULL, 0, NULL} 
 };
 
