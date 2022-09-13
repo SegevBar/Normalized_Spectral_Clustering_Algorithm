@@ -20,7 +20,7 @@ void ddg(double** vectorsMatrix, int N, int vectorDim) {
     ddg = getDiagonalDegreeMatrix(wam, N);
     freeMatrix(wam, N);
     
-    printMatrix(ddg, N, vectorDim);
+    printMatrix(ddg, N, N);
     freeMatrix(ddg, N);
 }
 
