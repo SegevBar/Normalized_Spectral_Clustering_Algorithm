@@ -32,7 +32,7 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
     int k, N, vectorDim;
     char *filename;
     double **T, **vectorsMatrix;
-    printf("at func\n");
+
     /* Parses arguments from python */
     if (!PyArg_ParseTuple(args, "is", &k, &filename)) {
         return NULL;
@@ -40,11 +40,10 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
     /* create matrix of vectors from file data points */
     N = getVectorCount(filename);
     vectorDim = getVectorDim(filename);
-    printf("C: N = %d, dim = %d\n", N, vectorDim);
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
 
     T = getNormalizedKEigenvectorsMatrix(k, vectorsMatrix, N, vectorDim);
-
+    printMatrix(T, N, k);
     return sendMatrixToPython(T, N, k);
 }
 
@@ -88,6 +87,7 @@ static PyObject *sendMatrixToPython(double **matrix, int N, int k) {
         }
         PyList_SetItem(pyMatrix, i, pyList);
     }
+    printMatrix(matrix, N, k);
     freeMatrix(matrix, N);
     return pyMatrix;
 }
