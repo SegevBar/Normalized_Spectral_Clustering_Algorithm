@@ -36,6 +36,8 @@ double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix,
     k = (k == 0) ? eigengapHeuristic(eigens, N) : k;
 
     T = createT(eigens, k, N);
+    printf("T:\n");
+    printMatrix(T, N, k);
     return T;
 }
 
