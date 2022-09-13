@@ -105,7 +105,7 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     int k, N;
 
     /* Parses arguments from python */
-    if (!(PyArg_ParseTuple(args, "00ii", &pyVectors, &pyCentroids, &N, &k))) {
+    if (!(PyArg_ParseTuple(args, "OOii", &pyVectors, &pyCentroids, &N, &k))) {
         return NULL;
     }
 
