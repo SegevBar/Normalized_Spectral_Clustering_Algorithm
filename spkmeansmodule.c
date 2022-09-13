@@ -108,8 +108,9 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     if (!(PyArg_ParseTuple(args, "OOii", &pyVectors, &pyCentroids, &N, &k))) {
         return NULL;
     }
-
-    clusters = initPyClusters(pyCentroids, k);    
+    printf("hi kmeans\n");
+    clusters = initPyClusters(pyCentroids, k); 
+    printf("init clusters\n");   
     kmeans(pyVectors, clusters, k, N);
     Py_RETURN_NONE;
 }
