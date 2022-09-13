@@ -13,7 +13,7 @@ static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args);
 static PyObject *sendMatrixToPython(double **matrix, int n, int m);
 static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args);
 static CLUSTER *initPyClusters(PyObject *pyCentroids, int k);
-static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, int k, int N);
+static PyObject *kmeans(PyObject *vectors_py, CLUSTER *clusters, int k, int N);
 void calcCluster(double* vector, CLUSTER* clusters, int k, int dim);
 int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon);
 static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k);
