@@ -4,7 +4,6 @@ module = Extension("spkmeansmodule",
                   sources=[
                     'spkmeans.c',
                     'spkmeansmodule.c',
-                    'spkmeans.c',
                     'wam.c',
                     'ddg.c',
                     'lnorm.c',
