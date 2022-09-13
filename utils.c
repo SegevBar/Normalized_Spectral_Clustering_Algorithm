@@ -138,7 +138,7 @@ void printMatrix(double **matrix, int n, int m) {
 
     for (i = 0; i < n; i++) {
         for (j = 0; j < m; j++) {
-            printf("%.4f", (matrix[i][j]));
+            printf("%.4f", matrix[i][j]);
             if (j != m-1) {
                 printf(",");
             } else {
@@ -159,7 +159,7 @@ void printMatrixDiagonal(double **matrix, int n) {
     int i;
     
     for (i = 0; i < n; i++) {
-        printf("%.4f", round(matrix[i][i]));
+        printf("%.4f", matrix[i][i]);
         if (i != n-1) {
             printf(",");
         } else {

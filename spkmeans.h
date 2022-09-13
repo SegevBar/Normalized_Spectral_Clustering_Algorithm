@@ -3,7 +3,6 @@
 #define MAX_ITER_JACOBI 100
 #define MAX_ITER_KMEANS 300
 #define EPSLION 0.00001
-#define round(x)((((x)>-0.00005)&&((x)<=0))?(0):(x))
 
 /* Structs */ 
 typedef struct 
