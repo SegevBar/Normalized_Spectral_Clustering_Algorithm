@@ -10,7 +10,7 @@
 static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self, 
                                                         PyObject *args);
 static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args);
-static PyObject *sendMatrixToPython(double **matrix, int n, int m);
+static PyObject *sendMatrixToPython(double **matrix, int N, int k);
 static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args);
 static CLUSTER *initPyClusters(PyObject *pyCentroids, int k);
 static PyObject *kmeans(PyObject *vectors_py, CLUSTER *clusters, int k, int N);
@@ -67,27 +67,27 @@ static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args) {
 }
 
 /*
-* Funcion: static PyObject *sendMatrixToPython(double **matrix, int n, int m)
+* Funcion: static PyObject *sendMatrixToPython(double **matrix, int N, int k)
 * -----------------------------------------------------------------------------
-* Params: Matrix and it's dimensions n*m
+* Params: Matrix and it's dimensions N*k
 * Action: Creates a PyObject matrix from input matrix
 * Return: PyObject matrix
 */
-static PyObject *sendMatrixToPython(double **matrix, int n, int m) {
+static PyObject *sendMatrixToPython(double **matrix, int N, int k) {
     PyObject *pyMatrix, *pyList, *pyVal;
     int i; int j;
 
     /* parse C matrix to python matrix */
-    pyMatrix = PyList_New(m);
-    for (i = 0; i < n; ++i) {
-        pyList = PyList_New(n);
-        for (j = 0; j < m; ++j) {
+    pyMatrix = PyList_New(N);
+    for (i = 0; i < N; ++i) {
+        pyList = PyList_New(k);
+        for (j = 0; j < k; ++j) {
             pyVal = Py_BuildValue("d", matrix[i][j]);
             PyList_SetItem(pyList, j, pyVal);
         }
         PyList_SetItem(pyMatrix, i, pyList);
     }
-    freeMatrix(matrix, n);
+    freeMatrix(matrix, N);
     return pyMatrix;
 }
 
