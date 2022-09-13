@@ -142,9 +142,7 @@ void printMatrix(double **matrix, int n, int m) {
             if (j != m-1) {
                 printf(",");
             } else {
-                if (i != n-1) {
-                    printf("\n");
-                }
+                printf("\n");
             }
         }
     }
