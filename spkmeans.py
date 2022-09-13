@@ -1,4 +1,3 @@
-from turtle import shape
 import numpy as np
 import sys
 import spkmeansmodule
