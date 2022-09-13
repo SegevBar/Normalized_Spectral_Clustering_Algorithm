@@ -47,7 +47,7 @@ double **jacobiAlgorithm(double **A, int n) {
         getIJOfLargestOffDiag(A, n, &i, &j); /*updates i j via pointers*/
         getCSOfP(A, i, j, &c, &s); /*updates s c via pointers*/
         transformA(A, n, i, j, s, c); 
-        V = getCurrentV(V, n, i, j, s, c);
+        getCurrentV(V, n, i, j, s, c);
         
         /* check convergence */
         offAt = off(A, n);
@@ -205,40 +205,24 @@ void transformA(double **A, int n, int i, int j, double s, double c) {
 }
 
 /*
-* Funcion: double **getCurrentV(double **V, int n, int i, int j, double s,
-*          double c)
+* Funcion: void getCurrentV(double **V, int n, int i, int j, double s, double c)
 * -----------------------------------------------------------------------------
 * Params: Eigenvectors matrix (V) and it's dimension (1D), indexes of max 
 *         off-diagonal value, s, c
 * Action: Multiplies current V matrix with the new P
 * Return: None
 */
-double **getCurrentV(double **V, int n, int i, int j, double s, double c) {
-    int k, a, b;
-    double **P, **newV;
-    double sum;
+void getCurrentV(double **V, int n, int i, int j, double s, double c) {
+    int k;
+    double Vki, Vkj;
 
-    /* create P matrix */
-    P = createIdentityMatrix(n);
-    P[i][i] = c;
-    P[j][j] = c;
-    P[i][j] = s;
-    P[j][i] = -s;
-    
-    /* duplicate matrixes newV = V*P */
-    newV = createSquareMatrix(n);
-    for (a = 0; a < n; a++) {
-        for (b = 0; b < n; b++) {
-            sum = 0;
-            for (k = 0; k < n; k++) {
-                sum += V[a][k] * P[k][b];
-            }
-            newV[a][b] = sum;
-        }
-    }
-
-    freeMatrix(P, n);
-    freeMatrix(V, n);
-
-    return newV;
+    /* since most values of P matrix are 0, matrix multiplication V' = V*P 
+    is simplified */
+    for (k = 0; k < n; k++) {
+        Vki = V[k][i];
+        Vkj = V[k][j];
+        
+        V[k][i] = Vki * c - Vkj * s;
+        V[k][j] = Vkj * c + Vki * s;
+    }    
 }
