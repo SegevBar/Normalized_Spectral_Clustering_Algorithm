@@ -50,12 +50,12 @@ def spk(k, filename):
     
     # init parameters and run kmeans++
     vectorsArray = np.array(vectorsMatrix)
-    print("np vectors array")
-    print(vectorsArray)
-    print("after")
-    centroids = np.array([[0.0 for i in range(k)] 
-    for i in range(k)])
-    chosenKCentroidsIndexs = kmeanspp(vectorsArray, centroids)
+    n = np.size(vectorsArray, 0)
+    vectorDim = np.size(vectorsArray, 1)
+
+    centroids = np.array([[0.0 for i in range(vectorDim)] \
+        for i in range(vectorDim)])
+    chosenKCentroidsIndexs = kmeanspp(vectorsArray, centroids, n, vectorDim)
     
     # init parameters and run kmeans from C program
     kmeansArgs = getArgsForKmeans(vectorsArray, centroids)
@@ -66,7 +66,7 @@ def spk(k, filename):
 
 
 
-def kmeanspp(vectorsMatrix, centroids):
+def kmeanspp(vectorsMatrix, centroids, n, k):
     '''
     Funcion: kmeanspp(vectorsMatrix, centroids)
     ----------------------------------------------------------------------------
@@ -77,11 +77,7 @@ def kmeanspp(vectorsMatrix, centroids):
 
     Return: List of chosen centroids indexes
     '''
-    # The function initializes K centroids for the K-means algorithm
     np.random.seed(0)
-    n = np.size(vectorsMatrix, 0)
-    vectorDim = np.size(vectorsMatrix, 1)
-    k = vectorDim
 
     # prepare data structures
     distances = [-1.0 for i in range(n)]
