@@ -52,6 +52,11 @@ void runGoal(char* goal, char* filename) {
     else if (strcmp(goal, "jacobi") == 0) {
         jacobi(vectorsMatrix, N, vectorDim);
     }
+    /*
+    else if (strcmp(goal, "testspk") == 0) {
+        getNormalizedKEigenvectorsMatrix(0, vectorsMatrix, N, vectorDim);
+    }
+    */
     else {
         validateInput(0);
     }

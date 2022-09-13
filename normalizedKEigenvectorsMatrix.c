@@ -24,20 +24,20 @@ double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix,
     
     ddgDiagonal = getDdgDiagonal(wam, N);
     lnorm = getLnorm(ddgDiagonal, wam, N);
+
     freeMatrix(wam, N);
     free(ddgDiagonal);
 
     eigenVecMatrix = jacobiAlgorithm(lnorm, N);
-    eigens = createEigensArr(eigenVecMatrix, lnorm, N); 
+    eigens = createEigensArr(lnorm, N); 
     freeMatrix(lnorm, N);
-    freeMatrix(eigenVecMatrix, N);
     
     descendingSort(eigens, N); /*sort eigans from largest to smallest*/
     k = (k == 0) ? eigengapHeuristic(eigens, N) : k;
 
-    T = createT(eigens, k, N);
-    printf("T:\n");
-    printMatrix(T, N, k);
+    T = createT(eigens, eigenVecMatrix, k, N);
+    freeMatrix(eigenVecMatrix, N);
+
     return T;
 }
 
@@ -49,7 +49,7 @@ double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix,
 * Action: Create array of EIGENS representing eigenvalue and its' eigenvector
 * Return: Array of EIGENS representing eigenvalue and its' eigenvector
 */
-EIGEN *createEigensArr(double **eigenVectors, double **eiganVals, int n) {
+EIGEN *createEigensArr(double **eiganVals, int n) {
     EIGEN *eigenArray;
     int i;
 
@@ -58,7 +58,7 @@ EIGEN *createEigensArr(double **eigenVectors, double **eiganVals, int n) {
 
     for (i = 0; i < n; i++) {
         eigenArray[i].eigenValue = eiganVals[i][i];
-        eigenArray[i].eigenVector = &eigenVectors[0][i];
+        eigenArray[i].eiganIndex = i;
     }
     return eigenArray;
 }
@@ -75,9 +75,9 @@ int eigengapHeuristic(EIGEN *eigenArray, int n) {
     int maxIndex, i;
     
     maxIndex = 0;
-    max = eigenArray[1].eigenValue - eigenArray[0].eigenValue;
+    max = fabs(eigenArray[1].eigenValue - eigenArray[0].eigenValue);
     for (i = 1; i < n / 2; i++) {
-        curMax = eigenArray[i+1].eigenValue - eigenArray[i].eigenValue;
+        curMax = fabs(eigenArray[i+1].eigenValue - eigenArray[i].eigenValue);
         if (curMax > max) {
             maxIndex = i;
             max = curMax;
@@ -87,22 +87,22 @@ int eigengapHeuristic(EIGEN *eigenArray, int n) {
 }
 
 /*
-* Funcion: double** createT(EIGEN* eigens, int k, int N)
+* Funcion: double** createT(EIGEN* eigens, double** eigenVecMatrix, int k, 
+*          int N)
 * -----------------------------------------------------------------------------
-* Params: Descending sorted eigens array, k (col), N (rows)
+* Params: Descending sorted eigens array, eigan vectors, k (col), N (rows)
 * Action: Create Normalized K Eigenvectors Matrix (T) from k largest eigans
 * Return: Matrix With Eigenvectors As Columns
 */
-double** createT(EIGEN* eigens, int k, int N) {
-    double **T, *currEigenvector;
+double** createT(EIGEN* eigens, double** eigenVecMatrix, int k, int N) {
+    double **T;
     int i, j;
     
     T = createMatrix(N, k);  /* allocate memory */
     /* copy eiganvectors of k largest eigan values */
-    for (j = 0; j < k; j++) {
-        currEigenvector = eigens[j].eigenVector;
+    for (j = 0; j < k; j++) {        
         for (i = 0; i < N; i++) {
-            T[i][j] = currEigenvector[i];
+            T[i][j] = eigenVecMatrix[i][eigens[j].eiganIndex];
         }
     }
     free(eigens);
@@ -125,7 +125,9 @@ void normalizeMatrixByRows(double **matrix, int row, int col) {
     denominatorsArr = getNormalizeDenominators(matrix, row, col);
     for (i = 0; i < row; i++) {
         for (j = 0; j < col; j++) {
-            matrix[i][j] = matrix[i][j] / denominatorsArr[i];
+            if (denominatorsArr[i] != 0) {
+                matrix[i][j] = matrix[i][j] / denominatorsArr[i];
+            }
         }
     }
     free(denominatorsArr);
@@ -157,15 +159,15 @@ double* getNormalizeDenominators(double **matrix, int row, int col) {
 }
 
 /*
-* Funcion: 
+* Funcion: void descendingSort(EIGEN* eigens, int n)
 * -----------------------------------------------------------------------------
 * Params: EIGEN array, EIGEN array length
 * Action: Sorts EIGEN array in descending order
 * Return: None
 */
 void descendingSort(EIGEN* eigens, int n) {
-    int i, j;
-    double tmpEigenVal, *tmpEigenVector;
+    int i, j, tmpEigenIndex;
+    double tmpEigenVal;
  
     for (i = 0; i < n; ++i) {
         for (j = i + 1; j < n; ++j) {
@@ -174,9 +176,9 @@ void descendingSort(EIGEN* eigens, int n) {
                 eigens[i].eigenValue = eigens[j].eigenValue;
                 eigens[j].eigenValue = tmpEigenVal;
 
-                tmpEigenVector = (eigens[i].eigenVector);
-                eigens[i].eigenVector = (eigens[j].eigenVector);
-                eigens[j].eigenVector = tmpEigenVector;
+                tmpEigenIndex = (eigens[i].eiganIndex);
+                eigens[i].eiganIndex = (eigens[j].eiganIndex);
+                eigens[j].eiganIndex = tmpEigenIndex;
             }
         }
     }

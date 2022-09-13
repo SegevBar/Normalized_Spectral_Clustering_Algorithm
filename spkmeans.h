@@ -7,8 +7,8 @@
 /* Structs */ 
 typedef struct 
 {
-    double *eigenVector;
     double eigenValue;
+    int eiganIndex;
 } EIGEN;
 
 typedef struct 
@@ -62,9 +62,9 @@ void getCurrentV(double **V, int n, int i, int j, double s, double c);
 /* spk.c */
 double** getNormalizedKEigenvectorsMatrix(int k, double** vectorsMatrix, 
                                           int N, int vectorDim);
-EIGEN *createEigensArr(double **eigenVectors, double **eiganVals, int n);
+EIGEN *createEigensArr(double **eiganVals, int n);
 int eigengapHeuristic(EIGEN *eigenArray, int n);
-double** createT(EIGEN* eigens, int k, int N);
+double** createT(EIGEN* eigens, double** eigenVecMatrix, int k, int N);
 void normalizeMatrixByRows(double **matrix, int row, int col);
 double* getNormalizeDenominators(double **matrix, int row, int col);
 void descendingSort(EIGEN* eigens, int n);
