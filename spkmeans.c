@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     validateInput(argc == 3);
     goal = argv[1];
     filename = argv[2];
-    runGoal(0, goal, filename);
+    runGoal(goal, filename);
 
     return 0;
 }

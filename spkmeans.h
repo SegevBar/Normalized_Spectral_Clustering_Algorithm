@@ -14,12 +14,8 @@ typedef struct
 
 typedef struct 
 {
-    double *centroid;
-    double *centroid_closest;
-    int size;
-    int equalTolLast;
-    int vectorsCount;
-    double* vectorsSum;
+    int vectors_count;
+    double* vectors_sum;
     double* centroid;
 } CLUSTER;
 
@@ -34,6 +30,7 @@ double** createMatrix(int n, int m);
 double** createSquareMatrix(int n);
 void printMatrix(double **matrix, int n, int m);
 void printMatrixDiagonal(double **matrix, int n);
+double euclideanNorm(double* vector1, double* vector2, int dim);
 void freeMatrix(double **matrix, int n);
 void validateAction(int bool);
 void validateInput(int bool);
@@ -72,17 +69,5 @@ double** createT(EIGEN* eigens, int k, int N);
 void normalizeMatrixByRows(double **matrix, int row, int col);
 double* getNormalizeDenominators(double **matrix, int row, int col);
 void descendingSort(EIGEN* eigens, int n);
-
-/* kmeans */
-void kmeansmain(CLUSTER *clusters, double **vectorsMatrix, int vectorDim,
-                int N);
-CLUSTER *initializeClusters(double **vectorsMatrix, int K);
-void initCluster(CLUSTER *curCluster, double *dataPoint, int vectorDim);
-void updateClosest(CLUSTER *curCluster, const double *datapoint, int vectorDim);
-void updateCentroid(CLUSTER *curCluster, int vectorDim);
-double euclideanNorm(const double *datapoint1, const double *datapoint2,
-                     int vectorDim);
-void printCentroids(CLUSTER *clusters, int vectorDim);
-void freeClusters(CLUSTER *clusters, int K);
 
 #endif

@@ -57,7 +57,7 @@ double* getDdgDiagonal(double **wam, int N) {
     int i, j;
     
     diagonal = (double*) calloc(N, sizeof(double));
-    errorOccurred(diagonal != NULL);
+    validateAction(diagonal != NULL);
 
     /* sum wij at each row of wam */
     for (i = 0; i < N; i++) {

@@ -1,5 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 #define PY_SSIZE_T_CLEAN
-
 #include <Python.h>
 #include "spkmeans.h"
 
@@ -12,7 +15,6 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args);
 static CLUSTER *initPyClusters(PyObject *pyCentroids, int k);
 static PyObject *kmeans(PyObject vectors_py, CLUSTER *clusters, int k, int N);
 void calcCluster(double* vector, CLUSTER* clusters, int k, int dim);
-double calcDistance(double* vector1, double* vector2, int dim);
 int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon);
 static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k);
 
@@ -206,7 +208,7 @@ void calcCluster(double* vector, CLUSTER* clusters, int k, int dim) {
 
     /*find closest cluster to current vector*/
     for (i = 0; i < k; i++) {
-        distance = calcDistance(vector, clusters[i].centroid, dim);
+        distance = euclideanNorm(vector, clusters[i].centroid, dim);
         if ((distance < min_distance) || (min_distance < 0)) {
             min_distance = distance; 
             closest_cluster = i;
@@ -217,23 +219,6 @@ void calcCluster(double* vector, CLUSTER* clusters, int k, int dim) {
     for (j = 0; j < dim; j++) {
         clusters[closest_cluster].vectors_sum[j] += vector[j];
     }
-}
-
-/*
-* Funcion: double calcDistance(double* vector1, double* vector2, int dim)
-* -----------------------------------------------------------------------------
-* Params: 2 vectors of the same dimension and dimension
-* Action: Calculates res = sum(xi-v)^2 i=0,..,k-1
-* Return: res
-*/
-double calcDistance(double* vector1, double* vector2, int dim) {
-    double sum = 0.0;
-    int j = 0;
-
-    for (j = 0; j < dim; j++) {
-        sum += (vector1[j]-vector2[j])*(vector1[j]-vector2[j]);
-    } 
-    return sum;
 }
 
 /*
@@ -259,7 +244,7 @@ int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon) {
             new_centroid[j] = (clusters[i].vectors_sum[j]/
                                clusters[i].vectors_count);
         }
-        dist = sqrt(calcDistance(clusters[i].centroid, new_centroid, dim));
+        dist = sqrt(euclideanNorm(clusters[i].centroid, new_centroid, dim));
 
         /*check if convergence did not accured*/
         has_converged = (dist >= epsilon) ? 0 : 1;

@@ -169,6 +169,23 @@ void printMatrixDiagonal(double **matrix, int n) {
 }
 
 /*
+* Funcion: double euclideanNorm(double* vector1, double* vector2, int dim)
+* -----------------------------------------------------------------------------
+* Params: 2 vectors of the same dimension and dimension
+* Action: Calculates res = sum(xi-v)^2 i=0,..,k-1
+* Return: res
+*/
+double euclideanNorm(double* vector1, double* vector2, int dim) {
+    double sum = 0.0;
+    int j = 0;
+
+    for (j = 0; j < dim; j++) {
+        sum += (vector1[j]-vector2[j])*(vector1[j]-vector2[j]);
+    } 
+    return sum;
+}
+
+/*
 * Funcion: void freeMatrix(double **matrix, int n)
 * -----------------------------------------------------------------------------
 * Params: Matrix, Matrix lines amount
