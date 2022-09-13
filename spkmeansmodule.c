@@ -111,7 +111,8 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     }
 
     clusters = initPyClusters(pyCentroids, k);    
-    return kmeans(pyVectors, clusters, k, N);
+    kmeans(pyVectors, clusters, k, N);
+    Py_RETURN_NONE;
 }
 
 /*
