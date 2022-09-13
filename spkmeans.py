@@ -52,6 +52,7 @@ def spk(k, filename):
     vectorsArray = np.array(vectorsMatrix)
     print("np vectors array")
     print(vectorsArray)
+    print("after")
     centroids = np.array([[0.0 for i in range(k)] 
     for i in range(k)])
     chosenKCentroidsIndexs = kmeanspp(vectorsArray, centroids)
