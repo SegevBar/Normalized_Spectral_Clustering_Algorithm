@@ -125,7 +125,8 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
 static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
     CLUSTER *clusters;
     int i, j, curr;
-      
+    
+    printf("k = %d\n", k);
     clusters = (CLUSTER *)calloc(k, sizeof(CLUSTER));
     printf("1\n");
     validateAction(clusters == NULL);
