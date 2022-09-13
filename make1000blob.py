@@ -9,7 +9,7 @@ def stringify_row(row):
     row = map(str, row)
     return ",".join(row) + "\n"
 
-# pointsMatrix      
+# datapoints      
 save_dataset(datasets.make_blobs(n_samples=1000, centers=3, cluster_std=5, n_features=10, shuffle=True, random_state=31)[0], "1000_blobs_10_feat")
 
 # symmetric matrix

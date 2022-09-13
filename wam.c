@@ -16,6 +16,7 @@ void wam(double** vectorsMatrix, int N, int vectorDim) {
     double **wam;
 
     wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
+
     freeMatrix(vectorsMatrix, N);
     printMatrix(wam, N, N);
     freeMatrix(wam, N);
@@ -37,7 +38,8 @@ double **getWeightedAdjacencyMatrix(double **vectorsMatrix, int N,
     wam = createSquareMatrix(N); /* allocate memory */
     for(i = 0; i < N; i++){
         for(j = 0; j < i; j++){
-            norm = euclideanNorm(vectorsMatrix[i], vectorsMatrix[j], vectorDim);
+            norm = sqrt(euclideanNorm(
+                        vectorsMatrix[i], vectorsMatrix[j], vectorDim));
             wij = exp(-norm/2);
             wam[i][j] = wij;
             wam[j][i] = wij;
