@@ -111,15 +111,8 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     }
 
     clusters = initPyClusters(pyCentroids, k); 
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < k; j++) {
-            printf("%f,", clusters[i].centroid[j]);
-        }
-        printf("\n");
-    }
-
-    kmeans(pyVectors, clusters, k, N);
-    Py_RETURN_NONE;
+    
+    return kmeans(pyVectors, clusters, k, N);
 }
 
 /*
@@ -196,13 +189,7 @@ static PyObject *kmeans(PyObject *vectors_py, CLUSTER *clusters, int k, int N) {
         }
         cnt++;
     }
-    for (i = 0; i < k; i++) {
-        for (j = 0; j < k; j++) {
-            printf("%f,", clusters[i].centroid[j]);
-        }
-        printf("\n");
-    }
-    
+
     return sendCentroidsToPython(clusters, k);
 }
 
