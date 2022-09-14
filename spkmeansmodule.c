@@ -103,7 +103,6 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     PyObject *pyVectors, *pyCentroids;
     CLUSTER *clusters;
     int k, N;
-    int i, j;
 
     /* Parses arguments from python */
     if (!(PyArg_ParseTuple(args, "OOii", &pyVectors, &pyCentroids, &N, &k))) {
