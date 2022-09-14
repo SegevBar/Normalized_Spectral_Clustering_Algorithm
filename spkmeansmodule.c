@@ -103,14 +103,21 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     PyObject *pyVectors, *pyCentroids;
     CLUSTER *clusters;
     int k, N;
+    int i, j;
 
     /* Parses arguments from python */
     if (!(PyArg_ParseTuple(args, "OOii", &pyVectors, &pyCentroids, &N, &k))) {
         return NULL;
     }
-    printf("hi kmeans\n");
+
     clusters = initPyClusters(pyCentroids, k); 
-    printf("init clusters\n");   
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < k; j++) {
+            printf("%f,", clusters[i].centroid[j]);
+        }
+        printf("\n");
+    }
+
     kmeans(pyVectors, clusters, k, N);
     Py_RETURN_NONE;
 }
@@ -126,15 +133,12 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
     CLUSTER *clusters;
     int i, j, curr;
     
-    printf("k = %d\n", k);
     clusters = (CLUSTER *)calloc(k, sizeof(CLUSTER));
-    printf("1\n");
     validateAction(clusters != NULL);
 
     curr = 0;
     for (i = 0; i < k; i++) {
         clusters[i].centroid = (double *)calloc(k, sizeof(double));
-        printf("2\n");
         validateAction(clusters[i].centroid != NULL);
 
         for (j = 0; j < k; j++) {
@@ -144,7 +148,6 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
 
         clusters[i].vectors_count = 0;
         clusters[i].vectors_sum = (double *)calloc(k, sizeof(double));
-        printf("3\n");
         validateAction(clusters[i].vectors_sum != NULL);
     }
     return clusters;
