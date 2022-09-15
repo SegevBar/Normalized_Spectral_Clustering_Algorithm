@@ -8,21 +8,25 @@
 /*
 * Funcion: void lnorm(double** vectorsMatrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Vectors matrix, Vector count, Vector dimension
+* Params: Vectors matrix, Vector amount N, Vector dimension
 * Action: Calculate and output the Normalized Graph Laplacian
 * Return: Prints Normalized Graph Laplacian
 */
 void lnorm(double** vectorsMatrix, int N, int vectorDim) {
     double **wam, *ddgDiagonal, **lnorm;
 
+    /* Form The Weighted Adjacency Matrix W from X */
     wam = getWeightedAdjacencyMatrix(vectorsMatrix, N, vectorDim);
     freeMatrix(vectorsMatrix, N);              
     
+    /* Form the diagonal of The Diagonal Degree Matrix D from W */
     ddgDiagonal = getDdgDiagonal(wam, N);
+    /* Form The Normalized Graph Laplacian */
     lnorm = getLnorm(ddgDiagonal, wam, N);
     freeMatrix(wam, N);
     free(ddgDiagonal);
 
+    /* print The Normalized Graph Laplacian */
     printMatrix(lnorm, N, N);
     freeMatrix(lnorm, N);
 }
@@ -30,8 +34,8 @@ void lnorm(double** vectorsMatrix, int N, int vectorDim) {
 /*
 * Funcion: double** getLnorm(double *ddgDiagonal, double **wam, int N)
 * -----------------------------------------------------------------------------
-* Params: Array of values in diagonal, Weighted Adjacency Matrix, Diagonal 
-*         Degree Matrix, Vectors amount
+* Params: Array of values in diagonal, Weighted Adjacency Matrix, Vectors 
+*         amount N
 * Action: Creates Lnorm
 * Return: Lnorm
 */
@@ -49,7 +53,7 @@ double** getLnorm(double *ddgDiagonal, double **wam, int N) {
     for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++) {
             lnormMatrix[i][j] = -ddgDiagonal[i]*wam[i][j]*ddgDiagonal[j];
-            if (i == j) {
+            if (i == j) {  /* add 1 to diagonal */
                 lnormMatrix[i][j] = lnormMatrix[i][j] + 1;         
             }
         }

@@ -67,7 +67,7 @@ def spk(k, filename):
 
 def kmeanspp(vectorsMatrix, centroids, n, k):
     '''
-    Funcion: kmeanspp(vectorsMatrix, centroids)
+    Funcion: kmeanspp(vectorsMatrix, centroids, n, k)
     ----------------------------------------------------------------------------
     Params: numpy matrix of c program normalized k eigenvectors matrix (T)
 
@@ -112,8 +112,9 @@ def minDistance(vectorsMatrix, centroids, distances, D):
     Return: None
     '''
     for i in range(len(vectorsMatrix)):
+        # calculate euclidean norm
         curDistance = pow(np.linalg.norm(vectorsMatrix[i] - centroids[D-1]), 2)
-        
+        # update distance is smaller then current distance, or first time
         if curDistance < distances[i] or distances[i] == -1.0:
             distances[i] = curDistance
 
@@ -129,9 +130,11 @@ def calcProbability(vectorsMatrix, distances, probs):
 
     Return: None
     '''
+    # sum distances
     sum = 0.0
     for dist in distances:
         sum += dist
+    # P(xl) = Dl/sum(Dm) for m=1,..,N
     for i in range(len(vectorsMatrix)):
         probs[i] = distances[i] / sum
 
@@ -175,7 +178,9 @@ def printClusters(chosenKCentroidsIndexs, kmeansCentroids):
 
     Return: None
     '''
+    # print centroids initial indexes
     print(*chosenKCentroidsIndexs, sep=",")
+    # print calculated centroids
     for centroid in kmeansCentroids:
         print(*["{:.4f}".format(num) for num in centroid], sep=",")
 
@@ -190,6 +195,7 @@ def validateInput(bool):
 
     Return: None
     '''
+    # abort program if bool is false
     if bool:
         print("Invalid Input!")
         quit()

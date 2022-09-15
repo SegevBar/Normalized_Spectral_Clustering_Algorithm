@@ -6,7 +6,7 @@
 #include <Python.h>
 #include "spkmeans.h"
 
-/* spkmeansmodule.c */
+/* spkmeansmodule.c protorypes */
 static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self, 
                                                         PyObject *args);
 static PyObject *runGoalOfCProgram(PyObject *self, PyObject *args);
@@ -38,10 +38,11 @@ static PyObject *getPythonNormalizedKEigenvectorsMatrix(PyObject *self,
         return NULL;
     }
     /* create matrix of vectors from file data points */
-    N = getVectorCount(filename);
-    vectorDim = getVectorDim(filename);
+    N = getVectorCount(filename);  /* get vectors amount N */
+    vectorDim = getVectorDim(filename);  /* get vector dimension */
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
 
+    /* Form Normalized K Eigenvectors Matrix T */
     T = getNormalizedKEigenvectorsMatrix(&k, vectorsMatrix, N, vectorDim);
 
     return sendMatrixToPython(T, N, k);
@@ -87,7 +88,7 @@ static PyObject *sendMatrixToPython(double **matrix, int N, int k) {
         }
         PyList_SetItem(pyMatrix, i, pyList);
     }
-    freeMatrix(matrix, N);
+    freeMatrix(matrix, N);  /* free memory of C before python */
     return pyMatrix;
 }
 
@@ -108,9 +109,10 @@ static PyObject *runKmeansFromCProgram(PyObject *self, PyObject *args) {
     if (!(PyArg_ParseTuple(args, "OOii", &pyVectors, &pyCentroids, &N, &k))) {
         return NULL;
     }
-
+    /* parse centroids from python and create cluster structs */
     clusters = initPyClusters(pyCentroids, k); 
     
+    /*  execute kmean */
     return kmeans(pyVectors, clusters, k, N);
 }
 
@@ -125,20 +127,24 @@ static CLUSTER *initPyClusters(PyObject *pyCentroids, int k) {
     CLUSTER *clusters;
     int i, j, curr;
     
+    /* allocate memory for k clusters */
     clusters = (CLUSTER *)calloc(k, sizeof(CLUSTER));
     validateAction(clusters != NULL);
 
     curr = 0;
     for (i = 0; i < k; i++) {
+        /* allocate memory for centroids */
         clusters[i].centroid = (double *)calloc(k, sizeof(double));
         validateAction(clusters[i].centroid != NULL);
 
+        /* copy centroids from pyobject */
         for (j = 0; j < k; j++) {
             clusters[i].centroid[j] = PyFloat_AsDouble(PyList_GetItem(pyCentroids, curr));
             curr++;
         }
 
-        clusters[i].vectors_count = 0;
+        clusters[i].vectors_count = 0;  /* init count = 0 */
+        /* allocate memory for vectors count */
         clusters[i].vectors_sum = (double *)calloc(k, sizeof(double));
         validateAction(clusters[i].vectors_sum != NULL);
     }
@@ -168,11 +174,13 @@ static PyObject *kmeans(PyObject *vectors_py, CLUSTER *clusters, int k, int N) {
             curr_vector = (double*)calloc(k, sizeof(double));
             validateAction(curr_vector != NULL);
 
+            /* copy vector from pyobject */
             for (j = 0; j < k; j++) {
                 curr_vector[j] = PyFloat_AsDouble(
                                         PyList_GetItem(vectors_py, curr));
                 curr++;
             }
+            /* find vectors' cluster */
             calcCluster(curr_vector, clusters, k, k);
             free(curr_vector);
         }
@@ -207,6 +215,7 @@ void calcCluster(double* vector, CLUSTER* clusters, int k, int dim) {
 
     /*find closest cluster to current vector*/
     for (i = 0; i < k; i++) {
+        /* calculate distance using euclidean norm */
         distance = euclideanNorm(vector, clusters[i].centroid, dim);
         if ((distance < min_distance) || (min_distance < 0)) {
             min_distance = distance; 
@@ -239,16 +248,17 @@ int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon) {
         new_centroid = (double*)calloc(dim, sizeof(double));
         validateAction(new_centroid != NULL);
 
+        /* calculate new centroid mean */
         for (j = 0; j < dim; j++) {
             new_centroid[j] = (clusters[i].vectors_sum[j]/
                                clusters[i].vectors_count);
         }
         dist = sqrt(euclideanNorm(clusters[i].centroid, new_centroid, dim));
 
-        /*check if convergence did not accured*/
+        /* check if convergence did not accured */
         has_converged = (dist >= epsilon) ? 0 : 1;
 
-        /*update centroid*/
+        /* update centroid */
         memcpy(clusters[i].centroid, new_centroid, sizeof(double)*dim);
 
         free(new_centroid);
@@ -266,7 +276,8 @@ int updateCentroids(CLUSTER* clusters, int k, int dim, double epsilon) {
 static PyObject *sendCentroidsToPython(CLUSTER *clusters, int k) {
     PyObject *clusters_py, *value, *curr_vector;
     int i, j;
-
+    
+    /* parse C centroids to python matrix */
     clusters_py = PyList_New(k);
     for (i = 0; i < k; i++) {
         curr_vector = PyList_New(k);

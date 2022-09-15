@@ -60,7 +60,7 @@ int getVectorCount(char *filename) {
 /*
 * Funcion: double** getVectorsMatrix(char *filename, int N, int dim)
 * -----------------------------------------------------------------------------
-* Params: Input file, pointers to vectors amount and point size
+* Params: Input file, pointers to vectors amount N and vector size
 * Action: Reads vectors from inpuf file and save in metrix
 * Return: Vectors matrix
 */
@@ -96,7 +96,7 @@ double** getVectorsMatrix(char *filename, int N, int dim) {
 /*
 * Funcion: double** createMatrix(int n, int m)
 * -----------------------------------------------------------------------------
-* Params: rows and columns number 
+* Params: rows (n) and columns (m) number 
 * Action: Allocate memory to zeros matrix n*m
 * Return: Matrix
 */
@@ -117,7 +117,7 @@ double** createMatrix(int n, int m) {
 /*
 * Funcion: double** createSquareMatrix(int n)
 * -----------------------------------------------------------------------------
-* Params: Matrix dimension
+* Params: Matrix dimension n (size is n*n)
 * Action: Allocate memory to zeros square matrix n*n
 * Return: Matrix
 */
@@ -128,7 +128,7 @@ double** createSquareMatrix(int n) {
 /*
 * Funcion: void printMatrix(double **matrix, int n, int m)
 * -----------------------------------------------------------------------------
-* Params: Matrix, Matrix size (2D)
+* Params: Matrix, Matrix size n*m
 * Action: Prints matrix
 * Return: None
 */
@@ -138,10 +138,10 @@ void printMatrix(double **matrix, int n, int m) {
 
     for (i = 0; i < n; i++) {
         for (j = 0; j < m; j++) {
-            printf("%.4f", matrix[i][j]);
-            if (j != m-1) {
+            printf("%.4f", matrix[i][j]);  /* round 4 digits after decimal */
+            if (j != m-1) {  /* if not the end of the line - add ,*/
                 printf(",");
-            } else {
+            } else {  /* if end of the line - add \n*/
                 printf("\n");
             }
         }
@@ -151,7 +151,7 @@ void printMatrix(double **matrix, int n, int m) {
 /*
 * Funcion: void printMatrixDiagonal(double **matrix, int n)
 * -----------------------------------------------------------------------------
-* Params: Matrix, Matrix size (1D)
+* Params: Matrix, Matrix size n (size is n*n)
 * Action: Prints the transposed matrix
 * Return: None
 */
@@ -159,10 +159,10 @@ void printMatrixDiagonal(double **matrix, int n) {
     int i;
     
     for (i = 0; i < n; i++) {
-        printf("%.4f", matrix[i][i]);
-        if (i != n-1) {
+        printf("%.4f", matrix[i][i]);  /* round 4 digits after decimal */
+        if (i != n-1) {  /* if not the end of the line - add ,*/
             printf(",");
-        } else {
+        } else {  /* if end of the line - add \n*/
             printf("\n");
         }
     }
@@ -171,7 +171,7 @@ void printMatrixDiagonal(double **matrix, int n) {
 /*
 * Funcion: double euclideanNorm(double* vector1, double* vector2, int dim)
 * -----------------------------------------------------------------------------
-* Params: 2 vectors of the same dimension and dimension
+* Params: 2 vectors of the same dimension, their dimension
 * Action: Calculates res = sum(xi-v)^2 i=0,..,k-1
 * Return: res
 */
@@ -179,6 +179,7 @@ double euclideanNorm(double* vector1, double* vector2, int dim) {
     double sum = 0.0;
     int j = 0;
 
+    /* norm = sum((vi-ui)^2) for i=1,..,dim */
     for (j = 0; j < dim; j++) {
         sum += (vector1[j]-vector2[j])*(vector1[j]-vector2[j]);
     } 
@@ -188,15 +189,17 @@ double euclideanNorm(double* vector1, double* vector2, int dim) {
 /*
 * Funcion: void freeMatrix(double **matrix, int n)
 * -----------------------------------------------------------------------------
-* Params: Matrix, Matrix lines amount
+* Params: Matrix, Matrix rows amount (n)
 * Action: Frees matrix memory
 * Return: None
 */
 void freeMatrix(double **matrix, int n) {
     int i;
+    /* free memory of each row in matrix */
     for(i = 0; i < n; i++){
         free(matrix[i]);
     }
+    /* free matrix memory */
     free(matrix);
 }
 
@@ -208,6 +211,7 @@ void freeMatrix(double **matrix, int n) {
 * Return: None
 */
 void validateAction(int bool) {
+    /* abort program if boolean is false */
     if (bool == 0) {
         printf("An Error Has Occurred\n");
         abort();
@@ -222,6 +226,7 @@ void validateAction(int bool) {
 * Return: None
 */
 void validateInput(int bool) {
+    /* abort program if boolean is false */
     if (bool == 0) {
         printf("Invalid Input!\n");
         abort();

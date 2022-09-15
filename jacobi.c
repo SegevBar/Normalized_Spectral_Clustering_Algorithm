@@ -9,16 +9,19 @@
 /*
 * Funcion: void jacobi(double** matrix, int N, int vectorDim)
 * -----------------------------------------------------------------------------
-* Params: Vectors matrix, Vector count, Vector dimension
+* Params: Vectors matrix, Vector amount N, Vector dimension
 * Action: Calculate and output the eigenvalues and eigenvectors
 * Return: Prints eigenvalues and eigenvectors
 */
 void jacobi(double** matrix, int N, int vectorDim) {
     double **eigenvectorsMatrix;
 
+    /* Find Eigenvalues and Eigenvectors using Jacobi algorithm */
     eigenvectorsMatrix = jacobiAlgorithm(matrix, N);
     
+    /* print Eigenvalues from diagonalized matrix */
     printMatrixDiagonal(matrix, N);
+    /* print Eigenvectors matrix */
     printMatrix(eigenvectorsMatrix, N, vectorDim);
     
     freeMatrix(matrix, N);
@@ -28,7 +31,7 @@ void jacobi(double** matrix, int N, int vectorDim) {
 /*
 * Funcion: double **jacobiAlgorithm(double **A, int n)
 * -----------------------------------------------------------------------------
-* Params: A matrix and it's dimension (1D)
+* Params: A matrix and it's dimension n (size is n*n) 
 * Action: Execute jacobi algorithm
 * Return: Eigenvectors matrix
 */
@@ -38,7 +41,7 @@ double **jacobiAlgorithm(double **A, int n) {
     double **V; /* Eigenvectors matrix */
     
     offA = off(A, n);
-    V = createIdentityMatrix(n);
+    V = createIdentityMatrix(n); /* base case - V is identity matrix */
 
     for (k = 0; k < MAX_ITER_JACOBI; k++) {
         if (matrixIsDiagonal(A, n)) {  /*break loop if A is diagonal*/
@@ -62,7 +65,7 @@ double **jacobiAlgorithm(double **A, int n) {
 /*
 * Funcion: double off(double **A, int n)
 * -----------------------------------------------------------------------------
-* Params: A matrix and it's dimension (1D)
+* Params: A matrix and it's dimension n (size is n*n) 
 * Action: Executes off function
 * Return: off funtion result
 */
@@ -70,6 +73,7 @@ double off(double **A, int n) {
     int i, j;
     double sum = 0;
 
+    /* calculate off(A)^2 = sum(sum(aij^2)) i=1,..,N, j=1,..,N */
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
             if (i != j) {
@@ -83,7 +87,7 @@ double off(double **A, int n) {
 /*
 * Funcion: double **createIdentityMatrix(int n)
 * -----------------------------------------------------------------------------
-* Params: Length of squared identity matrix
+* Params: Length of squared identity matrix n (size is n*n) 
 * Action: Create identity matrix
 * Return: Identity matrix
 */
@@ -92,6 +96,7 @@ double **createIdentityMatrix(int n) {
     double **matrix;
 
     matrix = createSquareMatrix(n); /* allocate memory */
+    /* diagonal equals to 1 */
     for (i = 0; i < n; i++) {
         matrix[i][i] = 1;
     }
@@ -101,7 +106,7 @@ double **createIdentityMatrix(int n) {
 /*
 * Funcion: int matrixIsDiagonal(double **A, int n)
 * -----------------------------------------------------------------------------
-* Params: A matrix and it's dimension (1D)
+* Params: A matrix and it's dimension n (size is n*n) 
 * Action: Checks if the matrix is a diagonal matrix
 * Return: diagonal matrix ? 1 : 0
 */
@@ -110,6 +115,7 @@ int matrixIsDiagonal(double **A, int n) {
 
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
+            /* if value off diagonal not equal 0 -> False  */
             if (i != j && A[i][j] != 0.0) {
                 return 0; 
             }
@@ -121,8 +127,8 @@ int matrixIsDiagonal(double **A, int n) {
 /*
 * Funcion: void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj)
 * -----------------------------------------------------------------------------
-* Params: A matrix and it's dimension (1D), pointers to indexes ij of maximum
-*         off-diagonal value
+* Params: A matrix and it's dimension n (size is n*n) , pointers to indexes i j 
+*         of maximum off-diagonal value
 * Action: Finds maximum absolut off-diagonal value and update ij
 * Return: None
 */
@@ -132,6 +138,7 @@ void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj) {
 
     for (i = 0; i < n; i++) {
         for (j = i; j < n; j++) {
+            /* find largest absolute value off diagonal */
             if (i != j && fabs(A[i][j]) > currMax) {
                 currMax = fabs(A[i][j]);
                 *pi = i;
@@ -146,7 +153,7 @@ void getIJOfLargestOffDiag(double **A, int n, int* pi, int* pj) {
 * -----------------------------------------------------------------------------
 * Params: A matrix, indexes of max off-diagonal value, 
 *         pointers to s and c
-* Action: calculates and updates s and c
+* Action: calculates and updates s and c using the formulas described in 1.2.1.4
 * Return: None
 */
 void getCSOfP(double **A, int i, int j, double *cp, double *sp) {
@@ -167,9 +174,9 @@ void getCSOfP(double **A, int i, int j, double *cp, double *sp) {
 /*
 * Funcion: void transformA(double **A, int n, int i, int j, double s, double c)
 * -----------------------------------------------------------------------------
-* Params: A matrix and it's dimension (1D), indexes of max 
+* Params: A matrix and it's dimension n (size is n*n), indexes of max 
 *         off-diagonal value, s, c
-* Action: Transforms the matrix formulas
+* Action: Transforms the matrix using the formulas described in 1.2.1.6
 * Return: None
 */
 void transformA(double **A, int n, int i, int j, double s, double c) {
@@ -221,7 +228,7 @@ void getCurrentV(double **V, int n, int i, int j, double s, double c) {
     for (k = 0; k < n; k++) {
         Vki = V[k][i];
         Vkj = V[k][j];
-        
+        /* ki and kj are the only indexes updated */
         V[k][i] = Vki * c - Vkj * s;
         V[k][j] = Vkj * c + Vki * s;
     }    

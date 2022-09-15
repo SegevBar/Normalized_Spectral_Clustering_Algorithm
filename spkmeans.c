@@ -16,10 +16,12 @@
 int main(int argc, char *argv[]) {
     char *goal, *filename;
 
+    /* parse CMD parameters and validate amount */
     validateInput(argc == 3);
     goal = argv[1];
     filename = argv[2];
-    runGoal(goal, filename);
+    /* run one of the goals : wam, ddg, lnorm, jacobi */
+    runGoal(goal, filename); 
 
     return 0;
 }
@@ -36,27 +38,27 @@ void runGoal(char* goal, char* filename) {
     double **vectorsMatrix;
 
     /* create matrix of vectors from file data points */
-    vectorDim = getVectorDim(filename);
-    N = getVectorCount(filename);
+    vectorDim = getVectorDim(filename);  /* get vector dimension */
+    N = getVectorCount(filename);  /* get vectors amount N */
     vectorsMatrix = getVectorsMatrix(filename, N, vectorDim);
 
+    /* run wam */
     if (strcmp(goal, "wam") == 0) {
         wam(vectorsMatrix, N, vectorDim);
     }
+    /* run ddg */
     else if (strcmp(goal, "ddg") == 0) {
         ddg(vectorsMatrix, N, vectorDim);
     }
+    /* run lnorm */
     else if (strcmp(goal, "lnorm") == 0) {
         lnorm(vectorsMatrix, N, vectorDim);
     }
+    /* run jacobi */
     else if (strcmp(goal, "jacobi") == 0) {
         jacobi(vectorsMatrix, N, vectorDim);
     }
-    /*
-    else if (strcmp(goal, "testspk") == 0) {
-        getNormalizedKEigenvectorsMatrix(0, vectorsMatrix, N, vectorDim);
-    }
-    */
+    /* goal is not one of the above options */
     else {
         validateInput(0);
     }
